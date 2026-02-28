@@ -1,0 +1,1802 @@
+[
+  {
+    "id": 1,
+    "arabic": "الله",
+    "english": "Allah (God)",
+    "transliteration": "Allah"
+  },
+  {
+    "id": 2,
+    "arabic": "رَبّ",
+    "english": "Lord",
+    "transliteration": "Rabb"
+  },
+  {
+    "id": 3,
+    "arabic": "يَوْم",
+    "english": "Day",
+    "transliteration": "Yawm"
+  },
+  {
+    "id": 4,
+    "arabic": "نَاس",
+    "english": "Mankind / People",
+    "transliteration": "Naas"
+  },
+  {
+    "id": 5,
+    "arabic": "أَرْض",
+    "english": "Earth",
+    "transliteration": "Ard"
+  },
+  {
+    "id": 6,
+    "arabic": "سَمَاء",
+    "english": "Sky / Heaven",
+    "transliteration": "Samaa"
+  },
+  {
+    "id": 7,
+    "arabic": "عَذَاب",
+    "english": "Punishment",
+    "transliteration": "Adhab"
+  },
+  {
+    "id": 8,
+    "arabic": "مُؤْمِن",
+    "english": "Believer",
+    "transliteration": "Mu'min"
+  },
+  {
+    "id": 9,
+    "arabic": "كِتَاب",
+    "english": "Book",
+    "transliteration": "Kitab"
+  },
+  {
+    "id": 10,
+    "arabic": "نَار",
+    "english": "Fire (Hell)",
+    "transliteration": "Naar"
+  },
+  {
+    "id": 11,
+    "arabic": "جَنَّة",
+    "english": "Paradise / Garden",
+    "transliteration": "Jannah"
+  },
+  {
+    "id": 12,
+    "arabic": "حَقّ",
+    "english": "Truth",
+    "transliteration": "Haqq"
+  },
+  {
+    "id": 13,
+    "arabic": "سَبِيل",
+    "english": "Way / Path",
+    "transliteration": "Sabeel"
+  },
+  {
+    "id": 14,
+    "arabic": "عِلْم",
+    "english": "Knowledge",
+    "transliteration": "Ilm"
+  },
+  {
+    "id": 15,
+    "arabic": "كَافِر",
+    "english": "Disbeliever",
+    "transliteration": "Kafir"
+  },
+  {
+    "id": 16,
+    "arabic": "نَفْس",
+    "english": "Soul / Self",
+    "transliteration": "Nafs"
+  },
+  {
+    "id": 17,
+    "arabic": "قَوْم",
+    "english": "People / Nation",
+    "transliteration": "Qawm"
+  },
+  {
+    "id": 18,
+    "arabic": "قَلْب",
+    "english": "Heart",
+    "transliteration": "Qalb"
+  },
+  {
+    "id": 19,
+    "arabic": "رَسُول",
+    "english": "Messenger",
+    "transliteration": "Rasool"
+  },
+  {
+    "id": 20,
+    "arabic": "آيَة",
+    "english": "Sign / Verse",
+    "transliteration": "Ayah"
+  },
+  {
+    "id": 21,
+    "arabic": "عَبْد",
+    "english": "Slave / Servant",
+    "transliteration": "Abd"
+  },
+  {
+    "id": 22,
+    "arabic": "رَحْمَة",
+    "english": "Mercy",
+    "transliteration": "Rahmah"
+  },
+  {
+    "id": 23,
+    "arabic": "أَجْر",
+    "english": "Reward",
+    "transliteration": "Ajr"
+  },
+  {
+    "id": 24,
+    "arabic": "دُنْيَا",
+    "english": "Worldly Life",
+    "transliteration": "Dunya"
+  },
+  {
+    "id": 25,
+    "arabic": "آخِرَة",
+    "english": "Hereafter",
+    "transliteration": "Akhirah"
+  },
+  {
+    "id": 26,
+    "arabic": "حِكْمَة",
+    "english": "Wisdom",
+    "transliteration": "Hikmah"
+  },
+  {
+    "id": 27,
+    "arabic": "عَظِيم",
+    "english": "Great / Mighty",
+    "transliteration": "Azeem"
+  },
+  {
+    "id": 28,
+    "arabic": "نُور",
+    "english": "Light",
+    "transliteration": "Noor"
+  },
+  {
+    "id": 29,
+    "arabic": "ظُلْم",
+    "english": "Injustice / Oppression",
+    "transliteration": "Zulm"
+  },
+  {
+    "id": 30,
+    "arabic": "خَيْر",
+    "english": "Good / Better",
+    "transliteration": "Khair"
+  },
+  {
+    "id": 31,
+    "arabic": "كُلّ",
+    "english": "All / Every",
+    "transliteration": "Kull"
+  },
+  {
+    "id": 32,
+    "arabic": "الَّذِيْنَ",
+    "english": "Those who",
+    "transliteration": "Alladheena"
+  },
+  {
+    "id": 33,
+    "arabic": "إِلَى",
+    "english": "To / Towards",
+    "transliteration": "Ila"
+  },
+  {
+    "id": 34,
+    "arabic": "عَلَى",
+    "english": "On / Upon",
+    "transliteration": "Ala"
+  },
+  {
+    "id": 35,
+    "arabic": "فِي",
+    "english": "In",
+    "transliteration": "Fi"
+  },
+  {
+    "id": 36,
+    "arabic": "مِن",
+    "english": "From",
+    "transliteration": "Min"
+  },
+  {
+    "id": 37,
+    "arabic": "عَن",
+    "english": "About / From",
+    "transliteration": "An"
+  },
+  {
+    "id": 38,
+    "arabic": "مَعَ",
+    "english": "With",
+    "transliteration": "Ma'a"
+  },
+  {
+    "id": 39,
+    "arabic": "إِذَا",
+    "english": "When / If",
+    "transliteration": "Idha"
+  },
+  {
+    "id": 40,
+    "arabic": "قَبْل",
+    "english": "Before",
+    "transliteration": "Qabl"
+  },
+  {
+    "id": 41,
+    "arabic": "بَعْد",
+    "english": "After",
+    "transliteration": "Ba'd"
+  },
+  {
+    "id": 42,
+    "arabic": "تَحْت",
+    "english": "Under",
+    "transliteration": "Taht"
+  },
+  {
+    "id": 43,
+    "arabic": "فَوْق",
+    "english": "Above",
+    "transliteration": "Fawq"
+  },
+  {
+    "id": 44,
+    "arabic": "بَيْنَ",
+    "english": "Between",
+    "transliteration": "Bayna"
+  },
+  {
+    "id": 45,
+    "arabic": "شَيْء",
+    "english": "Thing",
+    "transliteration": "Shay"
+  },
+  {
+    "id": 46,
+    "arabic": "أَهْل",
+    "english": "Family / People of",
+    "transliteration": "Ahl"
+  },
+  {
+    "id": 47,
+    "arabic": "مَال",
+    "english": "Wealth",
+    "transliteration": "Maal"
+  },
+  {
+    "id": 48,
+    "arabic": "عَالَمِين",
+    "english": "Worlds (Universe)",
+    "transliteration": "Alameen"
+  },
+  {
+    "id": 49,
+    "arabic": "حَيَاة",
+    "english": "Life",
+    "transliteration": "Hayat"
+  },
+  {
+    "id": 50,
+    "arabic": "مَوْت",
+    "english": "Death",
+    "transliteration": "Mawt"
+  },
+  {
+    "id": 51,
+    "arabic": "قَوْل",
+    "english": "Speech / Word",
+    "transliteration": "Qawl"
+  },
+  {
+    "id": 52,
+    "arabic": "عَمَل",
+    "english": "Deed / Work",
+    "transliteration": "Amal"
+  },
+  {
+    "id": 53,
+    "arabic": "إِسْلَام",
+    "english": "Submission (Islam)",
+    "transliteration": "Islam"
+  },
+  {
+    "id": 54,
+    "arabic": "إِيمَان",
+    "english": "Faith",
+    "transliteration": "Iman"
+  },
+  {
+    "id": 55,
+    "arabic": "شِرْك",
+    "english": "Polytheism",
+    "transliteration": "Shirk"
+  },
+  {
+    "id": 56,
+    "arabic": "غَيْب",
+    "english": "Unseen",
+    "transliteration": "Ghayb"
+  },
+  {
+    "id": 57,
+    "arabic": "شَهَادَة",
+    "english": "Witness / Testimony",
+    "transliteration": "Shahadah"
+  },
+  {
+    "id": 58,
+    "arabic": "صَلَاة",
+    "english": "Prayer",
+    "transliteration": "Salah"
+  },
+  {
+    "id": 59,
+    "arabic": "زَكَاة",
+    "english": "Charity (Obligatory)",
+    "transliteration": "Zakah"
+  },
+  {
+    "id": 60,
+    "arabic": "صَوْم",
+    "english": "Fasting",
+    "transliteration": "Sawm"
+  },
+  {
+    "id": 61,
+    "arabic": "شَمْس",
+    "english": "Sun",
+    "transliteration": "Shams"
+  },
+  {
+    "id": 62,
+    "arabic": "قَمَر",
+    "english": "Moon",
+    "transliteration": "Qamar"
+  },
+  {
+    "id": 63,
+    "arabic": "لَيْل",
+    "english": "Night",
+    "transliteration": "Layl"
+  },
+  {
+    "id": 64,
+    "arabic": "نَهَار",
+    "english": "Day (Daytime)",
+    "transliteration": "Nahar"
+  },
+  {
+    "id": 65,
+    "arabic": "بَحْر",
+    "english": "Sea / Ocean",
+    "transliteration": "Bahr"
+  },
+  {
+    "id": 66,
+    "arabic": "جَبَل",
+    "english": "Mountain",
+    "transliteration": "Jabal"
+  },
+  {
+    "id": 67,
+    "arabic": "شَجَر",
+    "english": "Tree",
+    "transliteration": "Shajar"
+  },
+  {
+    "id": 68,
+    "arabic": "مَاء",
+    "english": "Water",
+    "transliteration": "Maa"
+  },
+  {
+    "id": 69,
+    "arabic": "ثَمَر",
+    "english": "Fruit",
+    "transliteration": "Thamar"
+  },
+  {
+    "id": 70,
+    "arabic": "أَب",
+    "english": "Father",
+    "transliteration": "Ab"
+  },
+  {
+    "id": 71,
+    "arabic": "أُمّ",
+    "english": "Mother",
+    "transliteration": "Umm"
+  },
+  {
+    "id": 72,
+    "arabic": "أَخ",
+    "english": "Brother",
+    "transliteration": "Akh"
+  },
+  {
+    "id": 73,
+    "arabic": "أُخْت",
+    "english": "Sister",
+    "transliteration": "Ukht"
+  },
+  {
+    "id": 74,
+    "arabic": "اِبْن",
+    "english": "Son",
+    "transliteration": "Ibn"
+  },
+  {
+    "id": 75,
+    "arabic": "بِنْت",
+    "english": "Daughter",
+    "transliteration": "Bint"
+  },
+  {
+    "id": 76,
+    "arabic": "زَوْج",
+    "english": "Spouse (Husband/Wife)",
+    "transliteration": "Zawj"
+  },
+  {
+    "id": 77,
+    "arabic": "رَجُل",
+    "english": "Man",
+    "transliteration": "Rajul"
+  },
+  {
+    "id": 78,
+    "arabic": "اِمْرَأَة",
+    "english": "Woman",
+    "transliteration": "Imra'ah"
+  },
+  {
+    "id": 79,
+    "arabic": "وَلَد",
+    "english": "Child / Boy",
+    "transliteration": "Walad"
+  },
+  {
+    "id": 80,
+    "arabic": "وَالِد",
+    "english": "Parent",
+    "transliteration": "Walid"
+  },
+  {
+    "id": 81,
+    "arabic": "مَلِك",
+    "english": "King",
+    "transliteration": "Malik"
+  },
+  {
+    "id": 82,
+    "arabic": "سُلْطَان",
+    "english": "Authority",
+    "transliteration": "Sultan"
+  },
+  {
+    "id": 83,
+    "arabic": "عَدُوّ",
+    "english": "Enemy",
+    "transliteration": "Aduww"
+  },
+  {
+    "id": 84,
+    "arabic": "وَلِيّ",
+    "english": "Protector / Friend",
+    "transliteration": "Wali"
+  },
+  {
+    "id": 85,
+    "arabic": "نَصِير",
+    "english": "Helper",
+    "transliteration": "Naseer"
+  },
+  {
+    "id": 86,
+    "arabic": "شَهِيد",
+    "english": "Witness / Martyr",
+    "transliteration": "Shaheed"
+  },
+  {
+    "id": 87,
+    "arabic": "قَرِيب",
+    "english": "Near / Close",
+    "transliteration": "Qareeb"
+  },
+  {
+    "id": 88,
+    "arabic": "بَعِيد",
+    "english": "Far",
+    "transliteration": "Ba'eed"
+  },
+  {
+    "id": 89,
+    "arabic": "كَبِير",
+    "english": "Big / Large",
+    "transliteration": "Kabeer"
+  },
+  {
+    "id": 90,
+    "arabic": "صَغِير",
+    "english": "Small",
+    "transliteration": "Sagheer"
+  },
+  {
+    "id": 91,
+    "arabic": "كَثِير",
+    "english": "Many / Much",
+    "transliteration": "Katheer"
+  },
+  {
+    "id": 92,
+    "arabic": "قَلِيل",
+    "english": "Few / Little",
+    "transliteration": "Qaleel"
+  },
+  {
+    "id": 93,
+    "arabic": "شَدِيد",
+    "english": "Severe / Strong",
+    "transliteration": "Shadeed"
+  },
+  {
+    "id": 94,
+    "arabic": "غَفُور",
+    "english": "Forgiving",
+    "transliteration": "Ghafoor"
+  },
+  {
+    "id": 95,
+    "arabic": "رَحِيم",
+    "english": "Merciful",
+    "transliteration": "Raheem"
+  },
+  {
+    "id": 96,
+    "arabic": "عَلِيم",
+    "english": "All-Knowing",
+    "transliteration": "Aleem"
+  },
+  {
+    "id": 97,
+    "arabic": "حَكِيم",
+    "english": "All-Wise",
+    "transliteration": "Hakeem"
+  },
+  {
+    "id": 98,
+    "arabic": "سَمِيع",
+    "english": "All-Hearing",
+    "transliteration": "Samee"
+  },
+  {
+    "id": 99,
+    "arabic": "بَصِير",
+    "english": "All-Seeing",
+    "transliteration": "Baseer"
+  },
+  {
+    "id": 100,
+    "arabic": "قَدِير",
+    "english": "All-Powerful",
+    "transliteration": "Qadeer"
+  },
+  {
+    "id": 101,
+    "arabic": "حَمْد",
+    "english": "Praise",
+    "transliteration": "Hamd"
+  },
+  {
+    "id": 102,
+    "arabic": "تَسْبِيح",
+    "english": "Glorification",
+    "transliteration": "Tasbeeh"
+  },
+  {
+    "id": 103,
+    "arabic": "إِحْسَان",
+    "english": "Excellence / Goodness",
+    "transliteration": "Ihsan"
+  },
+  {
+    "id": 104,
+    "arabic": "اسْتِغْفَار",
+    "english": "Seeking Forgiveness",
+    "transliteration": "Istighfar"
+  },
+  {
+    "id": 105,
+    "arabic": "تَوْبَة",
+    "english": "Repentance",
+    "transliteration": "Tawbah"
+  },
+  {
+    "id": 106,
+    "arabic": "دِين",
+    "english": "Religion",
+    "transliteration": "Deen"
+  },
+  {
+    "id": 107,
+    "arabic": "حِسَاب",
+    "english": "Account / Reckoning",
+    "transliteration": "Hisab"
+  },
+  {
+    "id": 108,
+    "arabic": "مِيزَان",
+    "english": "Scale (Balance)",
+    "transliteration": "Mizan"
+  },
+  {
+    "id": 109,
+    "arabic": "قِيَامَة",
+    "english": "Resurrection",
+    "transliteration": "Qiyamah"
+  },
+  {
+    "id": 110,
+    "arabic": "سَاعَة",
+    "english": "The Hour",
+    "transliteration": "Sa'ah"
+  },
+  {
+    "id": 111,
+    "arabic": "كَلِمَة",
+    "english": "Word",
+    "transliteration": "Kalimah"
+  },
+  {
+    "id": 112,
+    "arabic": "اِسْم",
+    "english": "Name",
+    "transliteration": "Ism"
+  },
+  {
+    "id": 113,
+    "arabic": "وَجْه",
+    "english": "Face",
+    "transliteration": "Wajh"
+  },
+  {
+    "id": 114,
+    "arabic": "عَيْن",
+    "english": "Eye",
+    "transliteration": "Ayn"
+  },
+  {
+    "id": 115,
+    "arabic": "يَد",
+    "english": "Hand",
+    "transliteration": "Yad"
+  },
+  {
+    "id": 116,
+    "arabic": "أُذُن",
+    "english": "Ear",
+    "transliteration": "Udhn"
+  },
+  {
+    "id": 117,
+    "arabic": "رِجْل",
+    "english": "Foot",
+    "transliteration": "Rijl"
+  },
+  {
+    "id": 118,
+    "arabic": "لِسَان",
+    "english": "Tongue",
+    "transliteration": "Lisan"
+  },
+  {
+    "id": 119,
+    "arabic": "صَدْر",
+    "english": "Chest / Breast",
+    "transliteration": "Sadr"
+  },
+  {
+    "id": 120,
+    "arabic": "رُوح",
+    "english": "Spirit / Soul",
+    "transliteration": "Ruh"
+  },
+  {
+    "id": 121,
+    "arabic": "نَبِيّ",
+    "english": "Prophet",
+    "transliteration": "Nabi"
+  },
+  {
+    "id": 122,
+    "arabic": "بَشَر",
+    "english": "Human being",
+    "transliteration": "Bashar"
+  },
+  {
+    "id": 123,
+    "arabic": "إِنْسَان",
+    "english": "Man / Human",
+    "transliteration": "Insan"
+  },
+  {
+    "id": 124,
+    "arabic": "جِنّ",
+    "english": "Jinn",
+    "transliteration": "Jinn"
+  },
+  {
+    "id": 125,
+    "arabic": "شَيْطَان",
+    "english": "Satan / Devil",
+    "transliteration": "Shaytan"
+  },
+  {
+    "id": 126,
+    "arabic": "مَلَك",
+    "english": "Angel",
+    "transliteration": "Malak"
+  },
+  {
+    "id": 127,
+    "arabic": "عَرْش",
+    "english": "Throne",
+    "transliteration": "Arsh"
+  },
+  {
+    "id": 128,
+    "arabic": "كُرْسِيّ",
+    "english": "Chair / Footstool",
+    "transliteration": "Kursi"
+  },
+  {
+    "id": 129,
+    "arabic": "بَلَد",
+    "english": "City / Land",
+    "transliteration": "Balad"
+  },
+  {
+    "id": 130,
+    "arabic": "قَرْيَة",
+    "english": "Village / Town",
+    "transliteration": "Qaryah"
+  },
+  {
+    "id": 131,
+    "arabic": "دَار",
+    "english": "Abode / House",
+    "transliteration": "Dar"
+  },
+  {
+    "id": 132,
+    "arabic": "بَيْت",
+    "english": "House",
+    "transliteration": "Bayt"
+  },
+  {
+    "id": 133,
+    "arabic": "مَسْجِد",
+    "english": "Mosque",
+    "transliteration": "Masjid"
+  },
+  {
+    "id": 134,
+    "arabic": "بَاب",
+    "english": "Door / Gate",
+    "transliteration": "Bab"
+  },
+  {
+    "id": 135,
+    "arabic": "غُرْفَة",
+    "english": "Room / Chamber",
+    "transliteration": "Ghurfah"
+  },
+  {
+    "id": 136,
+    "arabic": "سِرَاج",
+    "english": "Lamp",
+    "transliteration": "Siraj"
+  },
+  {
+    "id": 137,
+    "arabic": "طَعَام",
+    "english": "Food",
+    "transliteration": "Ta'am"
+  },
+  {
+    "id": 138,
+    "arabic": "شَرَاب",
+    "english": "Drink",
+    "transliteration": "Sharab"
+  },
+  {
+    "id": 139,
+    "arabic": "لَحْم",
+    "english": "Meat",
+    "transliteration": "Lahm"
+  },
+  {
+    "id": 140,
+    "arabic": "لَبَن",
+    "english": "Milk",
+    "transliteration": "Laban"
+  },
+  {
+    "id": 141,
+    "arabic": "عَسَل",
+    "english": "Honey",
+    "transliteration": "Asal"
+  },
+  {
+    "id": 142,
+    "arabic": "خَمْر",
+    "english": "Wine / Intoxicant",
+    "transliteration": "Khamr"
+  },
+  {
+    "id": 143,
+    "arabic": "ذَهَب",
+    "english": "Gold",
+    "transliteration": "Dhahab"
+  },
+  {
+    "id": 144,
+    "arabic": "فِضَّة",
+    "english": "Silver",
+    "transliteration": "Fiddah"
+  },
+  {
+    "id": 145,
+    "arabic": "حَدِيد",
+    "english": "Iron",
+    "transliteration": "Hadeed"
+  },
+  {
+    "id": 146,
+    "arabic": "نُحَاس",
+    "english": "Copper / Brass",
+    "transliteration": "Nuhas"
+  },
+  {
+    "id": 147,
+    "arabic": "ثَوْب",
+    "english": "Garment / Clothes",
+    "transliteration": "Thawb"
+  },
+  {
+    "id": 148,
+    "arabic": "حُلَّة",
+    "english": "Ornaments",
+    "transliteration": "Hullah"
+  },
+  {
+    "id": 149,
+    "arabic": "مَطَر",
+    "english": "Rain",
+    "transliteration": "Matar"
+  },
+  {
+    "id": 150,
+    "arabic": "رِيح",
+    "english": "Wind",
+    "transliteration": "Reeh"
+  },
+  {
+    "id": 151,
+    "arabic": "سَحَاب",
+    "english": "Cloud",
+    "transliteration": "Sahab"
+  },
+  {
+    "id": 152,
+    "arabic": "ظِلّ",
+    "english": "Shade",
+    "transliteration": "Zill"
+  },
+  {
+    "id": 153,
+    "arabic": "حَرّ",
+    "english": "Heat",
+    "transliteration": "Harr"
+  },
+  {
+    "id": 154,
+    "arabic": "بَرْد",
+    "english": "Cold",
+    "transliteration": "Bard"
+  },
+  {
+    "id": 155,
+    "arabic": "صَيْف",
+    "english": "Summer",
+    "transliteration": "Sayf"
+  },
+  {
+    "id": 156,
+    "arabic": "شِتَاء",
+    "english": "Winter",
+    "transliteration": "Shita' "
+  },
+  {
+    "id": 157,
+    "arabic": "سَنَة",
+    "english": "Year",
+    "transliteration": "Sanah"
+  },
+  {
+    "id": 158,
+    "arabic": "شَهْر",
+    "english": "Month",
+    "transliteration": "Shahr"
+  },
+  {
+    "id": 159,
+    "arabic": "أُسْبُوع",
+    "english": "Week",
+    "transliteration": "Usbu' "
+  },
+  {
+    "id": 160,
+    "arabic": "صَبَاح",
+    "english": "Morning",
+    "transliteration": "Sabah"
+  },
+  {
+    "id": 161,
+    "arabic": "مَسَاء",
+    "english": "Evening",
+    "transliteration": "Masa' "
+  },
+  {
+    "id": 162,
+    "arabic": "غَد",
+    "english": "Tomorrow",
+    "transliteration": "Ghad"
+  },
+  {
+    "id": 163,
+    "arabic": "أَمْس",
+    "english": "Yesterday",
+    "transliteration": "Ams"
+  },
+  {
+    "id": 164,
+    "arabic": "أَوَّل",
+    "english": "First",
+    "transliteration": "Awwal"
+  },
+  {
+    "id": 165,
+    "arabic": "آخِر",
+    "english": "Last",
+    "transliteration": "Akhir"
+  },
+  {
+    "id": 166,
+    "arabic": "ظَاهِر",
+    "english": "Manifest / Apparent",
+    "transliteration": "Zahir"
+  },
+  {
+    "id": 167,
+    "arabic": "بَاطِن",
+    "english": "Hidden",
+    "transliteration": "Batin"
+  },
+  {
+    "id": 168,
+    "arabic": "حَيّ",
+    "english": "Living",
+    "transliteration": "Hayy"
+  },
+  {
+    "id": 169,
+    "arabic": "مَيِّت",
+    "english": "Dead",
+    "transliteration": "Mayyit"
+  },
+  {
+    "id": 170,
+    "arabic": "غَنِيّ",
+    "english": "Rich / Self-sufficient",
+    "transliteration": "Ghani"
+  },
+  {
+    "id": 171,
+    "arabic": "فَقِير",
+    "english": "Poor",
+    "transliteration": "Faqir"
+  },
+  {
+    "id": 172,
+    "arabic": "قَوِيّ",
+    "english": "Strong",
+    "transliteration": "Qawi"
+  },
+  {
+    "id": 173,
+    "arabic": "ضَعِيف",
+    "english": "Weak",
+    "transliteration": "Da'eef"
+  },
+  {
+    "id": 174,
+    "arabic": "أَعْمَى",
+    "english": "Blind",
+    "transliteration": "A'ma"
+  },
+  {
+    "id": 175,
+    "arabic": "أَصَمّ",
+    "english": "Deaf",
+    "transliteration": "Asamm"
+  },
+  {
+    "id": 176,
+    "arabic": "أَبْكَم",
+    "english": "Dumb (Mute)",
+    "transliteration": "Abkam"
+  },
+  {
+    "id": 177,
+    "arabic": "حَلَال",
+    "english": "Permissible (Halal)",
+    "transliteration": "Halal"
+  },
+  {
+    "id": 178,
+    "arabic": "حَرَام",
+    "english": "Forbidden (Haram)",
+    "transliteration": "Haram"
+  },
+  {
+    "id": 179,
+    "arabic": "يَمِين",
+    "english": "Right (Hand/Side)",
+    "transliteration": "Yameen"
+  },
+  {
+    "id": 180,
+    "arabic": "شِمَال",
+    "english": "Left (Hand/Side)",
+    "transliteration": "Shimal"
+  },
+  {
+    "id": 181,
+    "arabic": "أَمَام",
+    "english": "Front",
+    "transliteration": "Amam"
+  },
+  {
+    "id": 182,
+    "arabic": "خَلْف",
+    "english": "Behind",
+    "transliteration": "Khalf"
+  },
+  {
+    "id": 183,
+    "arabic": "وَسَط",
+    "english": "Middle",
+    "transliteration": "Wasat"
+  },
+  {
+    "id": 184,
+    "arabic": "جَيْش",
+    "english": "Army",
+    "transliteration": "Jaysh"
+  },
+  {
+    "id": 185,
+    "arabic": "سِلَاح",
+    "english": "Weapon",
+    "transliteration": "Silah"
+  },
+  {
+    "id": 186,
+    "arabic": "حَرْب",
+    "english": "War",
+    "transliteration": "Harb"
+  },
+  {
+    "id": 187,
+    "arabic": "سِلْم",
+    "english": "Peace",
+    "transliteration": "Silm"
+  },
+  {
+    "id": 188,
+    "arabic": "فِتْنَة",
+    "english": "Trial / Persecution",
+    "transliteration": "Fitnah"
+  },
+  {
+    "id": 189,
+    "arabic": "بَلَاء",
+    "english": "Affliction / Test",
+    "transliteration": "Bala'"
+  },
+  {
+    "id": 190,
+    "arabic": "نَصْر",
+    "english": "Victory / Help",
+    "transliteration": "Nasr"
+  },
+  {
+    "id": 191,
+    "arabic": "هَزِيمَة",
+    "english": "Defeat",
+    "transliteration": "Hazeemah"
+  },
+  {
+    "id": 192,
+    "arabic": "حُكْم",
+    "english": "Judgment / Command",
+    "transliteration": "Hukm"
+  },
+  {
+    "id": 193,
+    "arabic": "أَمْر",
+    "english": "Command / Affair",
+    "transliteration": "Amr"
+  },
+  {
+    "id": 194,
+    "arabic": "نَهْي",
+    "english": "Prohibition",
+    "transliteration": "Nahy"
+  },
+  {
+    "id": 195,
+    "arabic": "وَعْد",
+    "english": "Promise",
+    "transliteration": "Wa'd"
+  },
+  {
+    "id": 196,
+    "arabic": "عَهْد",
+    "english": "Covenant",
+    "transliteration": "Ahd"
+  },
+  {
+    "id": 197,
+    "arabic": "مِيثَاق",
+    "english": "Covenant / Pact",
+    "transliteration": "Mithaq"
+  },
+  {
+    "id": 198,
+    "arabic": "إِثْم",
+    "english": "Sin",
+    "transliteration": "Ithm"
+  },
+  {
+    "id": 199,
+    "arabic": "ذَنْب",
+    "english": "Sin / Fault",
+    "transliteration": "Dhanb"
+  },
+  {
+    "id": 200,
+    "arabic": "خَطِيئَة",
+    "english": "Mistake / Sin",
+    "transliteration": "Khati'ah"
+  },
+  {
+    "id": 201,
+    "arabic": "حَسَنَة",
+    "english": "Good deed",
+    "transliteration": "Hasanah"
+  },
+  {
+    "id": 202,
+    "arabic": "سَيِّئَة",
+    "english": "Evil deed",
+    "transliteration": "Sayyi'ah"
+  },
+  {
+    "id": 203,
+    "arabic": "صِدْق",
+    "english": "Truthfulness",
+    "transliteration": "Sidq"
+  },
+  {
+    "id": 204,
+    "arabic": "كِذْب",
+    "english": "Lie / Falsehood",
+    "transliteration": "Kidhb"
+  },
+  {
+    "id": 205,
+    "arabic": "عَدْل",
+    "english": "Justice",
+    "transliteration": "Adl"
+  },
+  {
+    "id": 206,
+    "arabic": "قِسْط",
+    "english": "Justice / Equity",
+    "transliteration": "Qist"
+  },
+  {
+    "id": 207,
+    "arabic": "جَوْر",
+    "english": "Injustice (Tyranny)",
+    "transliteration": "Jawr"
+  },
+  {
+    "id": 208,
+    "arabic": "فَرَح",
+    "english": "Joy / Happiness",
+    "transliteration": "Farah"
+  },
+  {
+    "id": 209,
+    "arabic": "حُزْن",
+    "english": "Grief / Sadness",
+    "transliteration": "Huzn"
+  },
+  {
+    "id": 210,
+    "arabic": "خَوْف",
+    "english": "Fear",
+    "transliteration": "Khawf"
+  },
+  {
+    "id": 211,
+    "arabic": "رَجَاء",
+    "english": "Hope",
+    "transliteration": "Raja'"
+  },
+  {
+    "id": 212,
+    "arabic": "حُبّ",
+    "english": "Love",
+    "transliteration": "Hubb"
+  },
+  {
+    "id": 213,
+    "arabic": "بُغْض",
+    "english": "Hatred",
+    "transliteration": "Bughd"
+  },
+  {
+    "id": 214,
+    "arabic": "طَمَع",
+    "english": "Greed / Desire",
+    "transliteration": "Tama'"
+  },
+  {
+    "id": 215,
+    "arabic": "يَأْس",
+    "english": "Despair",
+    "transliteration": "Ya's"
+  },
+  {
+    "id": 216,
+    "arabic": "شُكْر",
+    "english": "Gratitude",
+    "transliteration": "Shukr"
+  },
+  {
+    "id": 217,
+    "arabic": "كُفْر",
+    "english": "Ingratitude / Disbelief",
+    "transliteration": "Kufr"
+  },
+  {
+    "id": 218,
+    "arabic": "صَبْر",
+    "english": "Patience",
+    "transliteration": "Sabr"
+  },
+  {
+    "id": 219,
+    "arabic": "جَزَع",
+    "english": "Anxiety / Impatience",
+    "transliteration": "Jaza'"
+  },
+  {
+    "id": 220,
+    "arabic": "يَقِين",
+    "english": "Certainty",
+    "transliteration": "Yaqeen"
+  },
+  {
+    "id": 221,
+    "arabic": "شَكّ",
+    "english": "Doubt",
+    "transliteration": "Shakk"
+  },
+  {
+    "id": 222,
+    "arabic": "ظَنّ",
+    "english": "Conjecture / Assumption",
+    "transliteration": "Zann"
+  },
+  {
+    "id": 223,
+    "arabic": "نِسْيَان",
+    "english": "Forgetfulness",
+    "transliteration": "Nisyan"
+  },
+  {
+    "id": 224,
+    "arabic": "ذِكْر",
+    "english": "Remembrance",
+    "transliteration": "Dhikr"
+  },
+  {
+    "id": 225,
+    "arabic": "فِكْر",
+    "english": "Thought / Reflection",
+    "transliteration": "Fikr"
+  },
+  {
+    "id": 226,
+    "arabic": "عَقْل",
+    "english": "Intellect / Reason",
+    "transliteration": "Aql"
+  },
+  {
+    "id": 227,
+    "arabic": "جَهْل",
+    "english": "Ignorance",
+    "transliteration": "Jahl"
+  },
+  {
+    "id": 228,
+    "arabic": "ضَلَال",
+    "english": "Error / Straying",
+    "transliteration": "Dalal"
+  },
+  {
+    "id": 229,
+    "arabic": "هُدًى",
+    "english": "Guidance",
+    "transliteration": "Huda"
+  },
+  {
+    "id": 230,
+    "arabic": "تَقْوَى",
+    "english": "Piety / God-consciousness",
+    "transliteration": "Taqwa"
+  },
+  {
+    "id": 231,
+    "arabic": "بِرّ",
+    "english": "Righteousness",
+    "transliteration": "Birr"
+  },
+  {
+    "id": 232,
+    "arabic": "إِثْم",
+    "english": "Sin",
+    "transliteration": "Ithm"
+  },
+  {
+    "id": 233,
+    "arabic": "فُجُور",
+    "english": "Wickedness",
+    "transliteration": "Fujur"
+  },
+  {
+    "id": 234,
+    "arabic": "خَيْرَات",
+    "english": "Good deeds",
+    "transliteration": "Khayrat"
+  },
+  {
+    "id": 235,
+    "arabic": "صَدَقَة",
+    "english": "Charity (Voluntary)",
+    "transliteration": "Sadaqah"
+  },
+  {
+    "id": 236,
+    "arabic": "دُعَاء",
+    "english": "Supplication",
+    "transliteration": "Du'a"
+  },
+  {
+    "id": 237,
+    "arabic": "سُجُود",
+    "english": "Prostration",
+    "transliteration": "Sujud"
+  },
+  {
+    "id": 238,
+    "arabic": "رُكُوع",
+    "english": "Bowing",
+    "transliteration": "Ruku'"
+  },
+  {
+    "id": 239,
+    "arabic": "وُضُوء",
+    "english": "Ablution",
+    "transliteration": "Wudu"
+  },
+  {
+    "id": 240,
+    "arabic": "غُسْل",
+    "english": "Ritual Bath",
+    "transliteration": "Ghusl"
+  },
+  {
+    "id": 241,
+    "arabic": "تَيَمُّم",
+    "english": "Dry Ablution",
+    "transliteration": "Tayammum"
+  },
+  {
+    "id": 242,
+    "arabic": "حَجّ",
+    "english": "Pilgrimage",
+    "transliteration": "Hajj"
+  },
+  {
+    "id": 243,
+    "arabic": "عُمْرَة",
+    "english": "Lesser Pilgrimage",
+    "transliteration": "Umrah"
+  },
+  {
+    "id": 244,
+    "arabic": "إِحْرَام",
+    "english": "State of Ritual Consecration",
+    "transliteration": "Ihram"
+  },
+  {
+    "id": 245,
+    "arabic": "طَوَاف",
+    "english": "Circumambulation",
+    "transliteration": "Tawaf"
+  },
+  {
+    "id": 246,
+    "arabic": "سَعْي",
+    "english": "Walking (Saf'a & Marwa)",
+    "transliteration": "Sa'y"
+  },
+  {
+    "id": 247,
+    "arabic": "قِبْلَة",
+    "english": "Direction of Prayer",
+    "transliteration": "Qiblah"
+  },
+  {
+    "id": 248,
+    "arabic": "مِحْرَاب",
+    "english": "Prayer Niche",
+    "transliteration": "Mihrab"
+  },
+  {
+    "id": 249,
+    "arabic": "مِنْبَر",
+    "english": "Pulpit",
+    "transliteration": "Minbar"
+  },
+  {
+    "id": 250,
+    "arabic": "إِمَام",
+    "english": "Leader (Imam)",
+    "transliteration": "Imam"
+  },
+  {
+    "id": 251,
+    "arabic": "مُؤَذِّن",
+    "english": "Caller to Prayer",
+    "transliteration": "Mu'adhdhin"
+  },
+  {
+    "id": 252,
+    "arabic": "خُطْبَة",
+    "english": "Sermon",
+    "transliteration": "Khutbah"
+  },
+  {
+    "id": 253,
+    "arabic": "جُمُعَة",
+    "english": "Friday",
+    "transliteration": "Jumu'ah"
+  },
+  {
+    "id": 254,
+    "arabic": "عِيد",
+    "english": "Festival",
+    "transliteration": "Eid"
+  },
+  {
+    "id": 255,
+    "arabic": "جَنَازَة",
+    "english": "Funeral",
+    "transliteration": "Janazah"
+  },
+  {
+    "id": 256,
+    "arabic": "قَبْر",
+    "english": "Grave",
+    "transliteration": "Qabr"
+  },
+  {
+    "id": 257,
+    "arabic": "زِيَارَة",
+    "english": "Visit",
+    "transliteration": "Ziyarah"
+  },
+  {
+    "id": 258,
+    "arabic": "هَدِيَّة",
+    "english": "Gift",
+    "transliteration": "Hadiyyah"
+  },
+  {
+    "id": 259,
+    "arabic": "ضِيَافَة",
+    "english": "Hospitality",
+    "transliteration": "Diyafah"
+  },
+  {
+    "id": 260,
+    "arabic": "جَار",
+    "english": "Neighbor",
+    "transliteration": "Jar"
+  },
+  {
+    "id": 261,
+    "arabic": "يَتِيم",
+    "english": "Orphan",
+    "transliteration": "Yateem"
+  },
+  {
+    "id": 262,
+    "arabic": "مِسْكِين",
+    "english": "Needy / Poor",
+    "transliteration": "Miskeen"
+  },
+  {
+    "id": 263,
+    "arabic": "سَائِل",
+    "english": "Beggar / Asker",
+    "transliteration": "Sa'il"
+  },
+  {
+    "id": 264,
+    "arabic": "أَسِير",
+    "english": "Captive / Prisoner",
+    "transliteration": "Aseer"
+  },
+  {
+    "id": 265,
+    "arabic": "خَادِم",
+    "english": "Servant",
+    "transliteration": "Khadim"
+  },
+  {
+    "id": 266,
+    "arabic": "رَاعِ",
+    "english": "Shepherd / Guardian",
+    "transliteration": "Ra'i"
+  },
+  {
+    "id": 267,
+    "arabic": "رَعِيَّة",
+    "english": "Flock / Subjects",
+    "transliteration": "Ra'iyyah"
+  },
+  {
+    "id": 268,
+    "arabic": "أُمَّة",
+    "english": "Community / Nation",
+    "transliteration": "Ummah"
+  },
+  {
+    "id": 269,
+    "arabic": "حِزْب",
+    "english": "Party / Group",
+    "transliteration": "Hizb"
+  },
+  {
+    "id": 270,
+    "arabic": "طَائِفَة",
+    "english": "Group / Sect",
+    "transliteration": "Ta'ifah"
+  },
+  {
+    "id": 271,
+    "arabic": "فِرْقَة",
+    "english": "Sect / Division",
+    "transliteration": "Firqah"
+  },
+  {
+    "id": 272,
+    "arabic": "شِيعَة",
+    "english": "Faction / Party",
+    "transliteration": "Shi'ah"
+  },
+  {
+    "id": 273,
+    "arabic": "جَمَاعَة",
+    "english": "Group / Congregation",
+    "transliteration": "Jama'ah"
+  },
+  {
+    "id": 274,
+    "arabic": "وَحْدَة",
+    "english": "Unity",
+    "transliteration": "Wahdah"
+  },
+  {
+    "id": 275,
+    "arabic": "اخْتِلَاف",
+    "english": "Disagreement / Difference",
+    "transliteration": "Ikhtilaf"
+  },
+  {
+    "id": 276,
+    "arabic": "مَوَدَّة",
+    "english": "Affection",
+    "transliteration": "Mawaddah"
+  },
+  {
+    "id": 277,
+    "arabic": "أُلْفَة",
+    "english": "Familiarity / Intimacy",
+    "transliteration": "Ulfah"
+  },
+  {
+    "id": 278,
+    "arabic": "نِكَاح",
+    "english": "Marriage",
+    "transliteration": "Nikah"
+  },
+  {
+    "id": 279,
+    "arabic": "طَلَاق",
+    "english": "Divorce",
+    "transliteration": "Talaq"
+  },
+  {
+    "id": 280,
+    "arabic": "مَهْر",
+    "english": "Dowry",
+    "transliteration": "Mahr"
+  },
+  {
+    "id": 281,
+    "arabic": "وَلِيمَة",
+    "english": "Wedding Feast",
+    "transliteration": "Walimah"
+  },
+  {
+    "id": 282,
+    "arabic": "نَسَب",
+    "english": "Lineage / Genealogy",
+    "transliteration": "Nasab"
+  },
+  {
+    "id": 283,
+    "arabic": "صِهْر",
+    "english": "In-laws",
+    "transliteration": "Sihr"
+  },
+  {
+    "id": 284,
+    "arabic": "عَشِيرَة",
+    "english": "Clan / Tribe",
+    "transliteration": "Asheerah"
+  },
+  {
+    "id": 285,
+    "arabic": "قَبِيلَة",
+    "english": "Tribe",
+    "transliteration": "Qabilah"
+  },
+  {
+    "id": 286,
+    "arabic": "شُعَيْب",
+    "english": "Peoples (Nations)",
+    "transliteration": "Shu'ub"
+  },
+  {
+    "id": 287,
+    "arabic": "عَرَب",
+    "english": "Arabs",
+    "transliteration": "Arab"
+  },
+  {
+    "id": 288,
+    "arabic": "أَعْجَم",
+    "english": "Non-Arabs",
+    "transliteration": "A'jam"
+  },
+  {
+    "id": 289,
+    "arabic": "رُوم",
+    "english": "Romans (Byzantines)",
+    "transliteration": "Rum"
+  },
+  {
+    "id": 290,
+    "arabic": "يَهُود",
+    "english": "Jews",
+    "transliteration": "Yahud"
+  },
+  {
+    "id": 291,
+    "arabic": "نَصَارَى",
+    "english": "Christians",
+    "transliteration": "Nasara"
+  },
+  {
+    "id": 292,
+    "arabic": "مَجُوس",
+    "english": "Magians (Zoroastrians)",
+    "transliteration": "Majus"
+  },
+  {
+    "id": 293,
+    "arabic": "صَابِئِين",
+    "english": "Sabeans",
+    "transliteration": "Sabi'een"
+  },
+  {
+    "id": 294,
+    "arabic": "مُنَافِق",
+    "english": "Hypocrite",
+    "transliteration": "Munafiq"
+  },
+  {
+    "id": 295,
+    "arabic": "فَاسِق",
+    "english": "Transgressor",
+    "transliteration": "Fasiq"
+  },
+  {
+    "id": 296,
+    "arabic": "ظَالِم",
+    "english": "Oppressor / Wrongdoer",
+    "transliteration": "Zalim"
+  },
+  {
+    "id": 297,
+    "arabic": "مُفْسِد",
+    "english": "Corrupter",
+    "transliteration": "Mufsid"
+  },
+  {
+    "id": 298,
+    "arabic": "مُصْلِح",
+    "english": "Reformer / Peacemaker",
+    "transliteration": "Muslih"
+  },
+  {
+    "id": 299,
+    "arabic": "صِدِّيق",
+    "english": "Truthful One",
+    "transliteration": "Siddiq"
+  },
+  {
+    "id": 300,
+    "arabic": "شَهِيد",
+    "english": "Martyr / Witness",
+    "transliteration": "Shaheed"
+  }
+]

@@ -1,0 +1,26 @@
+# Musafir AI Chat Service — Python Dependencies
+# ================================================
+# IMPORTANT: These have strict cross-version requirements.
+# Use a virtual environment: python -m venv venv
+
+# LangChain core (pinned — upgrading may break Pydantic compat)
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-chroma>=0.2.0
+langchain-ollama==0.2.2
+langchain-huggingface==0.1.2
+
+# Vector store
+chromadb>=0.5.0
+
+# Embeddings fallback (for offline / non-Ollama embedding)
+faiss-cpu
+sentence-transformers==3.3.1
+
+# Flask API server
+flask>=3.0.0
+flask-cors>=4.0.0
+requests>=2.31.0
+
+# Data preparation
+tqdm

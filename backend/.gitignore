@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AI Model Files - Heavy models excluded from repo
+all-mpnet-base-v2-onnx/
+bge-base-en-v1.5/
+bge-reranker-base/
+Ollama/
+*.safetensors
+*.bin
+*.onnx
+ollama-*.txt
+server-log.txt
+test-output.txt
+
+# Large vector index files (exceed GitHub 100MB limit)
+hadith_vector_index.json
+vector_index.json
+
+# Environment Variables
+# .env files are now pushed for team sharing
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/

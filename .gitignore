@@ -1,0 +1,37 @@
+# ─── Dependencies ────────────────────────────────────────────
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# ─── Environment Variables ───────────────────────────────────
+.env
+!.env.example
+
+# ─── Build / Cache ───────────────────────────────────────────
+.expo/
+dist/
+build/
+*.tsbuildinfo
+
+# ─── ONNX Models (large binaries — track with Git LFS) ──────
+# backend/bge-base-en-v1.5/model.safetensors
+# backend/bge-base-en-v1.5/onnx/
+# backend/bge-reranker-base/model.safetensors
+# backend/bge-reranker-base/onnx/
+
+# ─── Vector Databases ───────────────────────────────────────
+services/ai/chroma_db/
+backend/vector_index.json
+
+# ─── OS / IDE ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+*.swp
+*.swo
+
+# ─── Logs ────────────────────────────────────────────────────
+*.log
+server-log.txt
