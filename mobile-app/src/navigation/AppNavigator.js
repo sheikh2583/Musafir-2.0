@@ -1,9 +1,11 @@
 import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import FloatingMiniPlayer from '../components/FloatingMiniPlayer';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -23,6 +25,20 @@ import QuranQuizScreen from '../screens/QuranQuizScreen';
 import SalatLeaderboardScreen from '../screens/SalatLeaderboardScreen';
 import HijriCalendarScreen from '../screens/HijriCalendarScreen';
 import AIChatScreen from '../screens/AIChatScreen';
+import QuizModeScreen from '../screens/QuizModeScreen';
+import AyahRangeScreen from '../screens/AyahRangeScreen';
+import SettingsScreen from '../screens/SettingsScreen';
+import QiblaCompassScreen from '../screens/QiblaCompassScreen';
+import NearbyMosquesScreen from '../screens/NearbyMosquesScreen';
+import ZakatScreen from '../screens/ZakatScreen';
+import DuaCategoryScreen from '../screens/DuaCategoryScreen';
+import DuaSubCategoryScreen from '../screens/DuaSubCategoryScreen';
+import DuaDetailScreen from '../screens/DuaDetailScreen';
+import DuaFavoritesScreen from '../screens/DuaFavoritesScreen';
+import LectureSpeakersScreen from '../screens/LectureSpeakersScreen';
+import LectureListScreen from '../screens/LectureListScreen';
+import LecturePlayerScreen from '../screens/LecturePlayerScreen';
+import MusafirScreen from '../screens/MusafirScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,6 +81,61 @@ function HomeStack() {
         component={AIChatScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="QiblaCompass"
+        component={QiblaCompassScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="NearbyMosques"
+        component={NearbyMosquesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ZakatCalculator"
+        component={ZakatScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DuaCategory"
+        component={DuaCategoryScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DuaSubCategory"
+        component={DuaSubCategoryScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DuaDetail"
+        component={DuaDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="DuaFavorites"
+        component={DuaFavoritesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LectureSpeakers"
+        component={LectureSpeakersScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LectureList"
+        component={LectureListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="LecturePlayer"
+        component={LecturePlayerScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MusafirStatus"
+        component={MusafirScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -81,8 +152,8 @@ function QuranStack() {
         name="Surah"
         component={SurahScreen}
         options={{
-          headerStyle: { backgroundColor: '#2E7D32' },
-          headerTintColor: '#FFF',
+          headerStyle: { backgroundColor: '#1E1E1E' },
+          headerTintColor: '#D4A84B',
           headerTitleStyle: { fontWeight: 'bold' }
         }}
       />
@@ -91,10 +162,30 @@ function QuranStack() {
         component={SurahQuizScreen}
         options={({ route }) => ({
           title: `${route.params.surahName} Quiz`,
-          headerStyle: { backgroundColor: '#2E7D32' },
-          headerTintColor: '#FFF',
+          headerStyle: { backgroundColor: '#1E1E1E' },
+          headerTintColor: '#D4A84B',
           headerTitleStyle: { fontWeight: 'bold' }
         })}
+      />
+      <Stack.Screen
+        name="QuizMode"
+        component={QuizModeScreen}
+        options={({ route }) => ({
+          title: `${route.params.surahName} Quiz`,
+          headerStyle: { backgroundColor: '#1E1E1E' },
+          headerTintColor: '#D4A84B',
+          headerTitleStyle: { fontWeight: 'bold' }
+        })}
+      />
+      <Stack.Screen
+        name="AyahRangeSelect"
+        component={AyahRangeScreen}
+        options={{
+          title: 'Select Ayah Range',
+          headerStyle: { backgroundColor: '#1E1E1E' },
+          headerTintColor: '#D4A84B',
+          headerTitleStyle: { fontWeight: 'bold' }
+        }}
       />
       <Stack.Screen
         name="VerseSearch"
@@ -111,8 +202,8 @@ function QuranStack() {
         component={QuranQuizScreen}
         options={{
           title: 'Quran Vocabulary Quiz',
-          headerStyle: { backgroundColor: '#2E7D32' },
-          headerTintColor: '#FFF',
+          headerStyle: { backgroundColor: '#1E1E1E' },
+          headerTintColor: '#D4A84B',
         }}
       />
     </Stack.Navigator>
@@ -145,42 +236,66 @@ function HadithStack() {
   );
 }
 
-function MainTabs() {
+function ProfileStack() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Quran') {
-            iconName = focused ? 'book' : 'book-outline';
-          } else if (route.name === 'Hadith') {
-            iconName = focused ? 'library' : 'library-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#D4A84B',
-        tabBarInactiveTintColor: '#808080',
-        tabBarStyle: {
-          backgroundColor: '#1E1E1E',
-          borderTopColor: '#333333',
-          borderTopWidth: 1,
-        },
-        headerShown: false,
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Quran" component={QuranStack} />
-      <Tab.Screen name="Hadith" component={HadithStack} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ProfileMain"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
   );
 }
+
+function MainTabs() {
+  return (
+    <View style={navStyles.root}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+
+            if (route.name === 'Home') {
+              iconName = focused ? 'home' : 'home-outline';
+            } else if (route.name === 'Quran') {
+              iconName = focused ? 'book' : 'book-outline';
+            } else if (route.name === 'Hadith') {
+              iconName = focused ? 'library' : 'library-outline';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person-outline';
+            }
+
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#D4A84B',
+          tabBarInactiveTintColor: '#808080',
+          tabBarStyle: {
+            backgroundColor: '#1E1E1E',
+            borderTopColor: '#333333',
+            borderTopWidth: 1,
+          },
+          headerShown: false,
+        })}
+      >
+        <Tab.Screen name="Home" component={HomeStack} />
+        <Tab.Screen name="Quran" component={QuranStack} />
+        <Tab.Screen name="Hadith" component={HadithStack} />
+        <Tab.Screen name="Profile" component={ProfileStack} />
+      </Tab.Navigator>
+      <FloatingMiniPlayer />
+    </View>
+  );
+}
+
+const navStyles = StyleSheet.create({
+  root: { flex: 1 },
+});
 
 export default function AppNavigator() {
   const { isAuthenticated, loading } = useAuth();

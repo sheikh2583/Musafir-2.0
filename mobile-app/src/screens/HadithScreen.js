@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Platform
+  Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getCollections, getCollectionMetadata } from '../services/hadithService';
@@ -86,7 +87,7 @@ export default function HadithScreen({ navigation }) {
         
         <View style={styles.statsContainer}>
           <View style={styles.statBadge}>
-            <Text style={styles.statNumber}>{item.actualCount || 0}</Text>
+            <Text style={styles.statNumber}>{item.totalHadiths || 0}</Text>
             <Text style={styles.statLabel}>Hadiths Available</Text>
           </View>
         </View>
@@ -130,7 +131,10 @@ export default function HadithScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -165,6 +169,7 @@ export default function HadithScreen({ navigation }) {
         <TextInput
           style={styles.searchInput}
           placeholder={searchMode === 'collection' ? 'Filter collections...' : 'Ask a question or search by meaning...'}
+          placeholderTextColor="#808080"
           value={searchQuery}
           onChangeText={setSearchQuery}
           onSubmitEditing={searchMode === 'hadith' ? handleHadithSearch : undefined}
@@ -199,7 +204,7 @@ export default function HadithScreen({ navigation }) {
       ) : (
         renderEmptySearch()
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -8,6 +8,8 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import quranService from '../services/quranService';
@@ -69,7 +71,8 @@ const QuranScreen = ({ navigation }) => {
       onPress={() => navigation.navigate('Surah', {
         surahNumber: item.number,
         surahName: item.englishName,
-        surahNameArabic: item.arabicName
+        surahNameArabic: item.arabicName,
+        totalAyahs: item.numberOfAyahs
       })}
     >
       <View style={styles.surahNumber}>
@@ -105,7 +108,10 @@ const QuranScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -157,6 +163,7 @@ const QuranScreen = ({ navigation }) => {
         <TextInput
           style={styles.searchInput}
           placeholder={searchMode === 'surah' ? 'Search surahs...' : 'Ask a question or search by meaning...'}
+          placeholderTextColor="#808080"
           value={searchQuery}
           onChangeText={handleSearch}
           onSubmitEditing={searchMode === 'verse' ? handleVerseSearch : undefined}
@@ -191,7 +198,7 @@ const QuranScreen = ({ navigation }) => {
       ) : (
         renderEmptySearch()
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

@@ -3,6 +3,8 @@
  * Fetches real Hijri date and calendar events from Aladhan API
  */
 
+import { Share, Platform } from 'react-native';
+
 const ALADHAN_API = 'https://api.aladhan.com/v1';
 
 // Islamic events with their significance and related content
@@ -249,19 +251,281 @@ class IslamicCalendarService {
    */
   getDailyQuote() {
     const quotes = [
-      { text: 'Verily, with hardship comes ease.', ref: 'Quran 94:6' },
-      { text: 'And He found you lost and guided [you].', ref: 'Quran 93:7' },
-      { text: 'So remember Me; I will remember you.', ref: 'Quran 2:152' },
-      { text: 'Allah does not burden a soul beyond that it can bear.', ref: 'Quran 2:286' },
-      { text: 'And whoever puts their trust in Allah, He will be enough for them.', ref: 'Quran 65:3' },
-      { text: 'Be patient. Indeed, Allah is with the patient.', ref: 'Quran 8:46' },
-      { text: 'And speak to people good words.', ref: 'Quran 2:83' },
-      { text: 'Indeed, prayer prohibits immorality and wrongdoing.', ref: 'Quran 29:45' },
+      { text: 'Verily, with hardship comes ease.', ref: 'Quran 94:6', surah: 94, ayah: 6 },
+      { text: 'And He found you lost and guided [you].', ref: 'Quran 93:7', surah: 93, ayah: 7 },
+      { text: 'So remember Me; I will remember you.', ref: 'Quran 2:152', surah: 2, ayah: 152 },
+      { text: 'Allah does not burden a soul beyond that it can bear.', ref: 'Quran 2:286', surah: 2, ayah: 286 },
+      { text: 'And whoever puts their trust in Allah, He will be enough for them.', ref: 'Quran 65:3', surah: 65, ayah: 3 },
+      { text: 'Be patient. Indeed, Allah is with the patient.', ref: 'Quran 8:46', surah: 8, ayah: 46 },
+      { text: 'And speak to people good words.', ref: 'Quran 2:83', surah: 2, ayah: 83 },
+      { text: 'Indeed, prayer prohibits immorality and wrongdoing.', ref: 'Quran 29:45', surah: 29, ayah: 45 },
+      { text: 'And We have certainly made the Quran easy for remembrance, so is there any who will remember?', ref: 'Quran 54:17', surah: 54, ayah: 17 },
+      { text: 'My mercy encompasses all things.', ref: 'Quran 7:156', surah: 7, ayah: 156 },
+      { text: 'And whoever fears Allah, He will make for him a way out.', ref: 'Quran 65:2', surah: 65, ayah: 2 },
+      { text: 'Indeed, the most noble of you in the sight of Allah is the most righteous of you.', ref: 'Quran 49:13', surah: 49, ayah: 13 },
     ];
     
     // Use day of year to get consistent daily quote
     const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
     return quotes[dayOfYear % quotes.length];
+  }
+
+  /**
+   * Get daily hadith (local curated collection — no API call needed)
+   */
+  getDailyHadith() {
+    const hadiths = [
+      {
+        text: 'The best among you are those who have the best manners and character.',
+        narrator: 'Narrated by Abdullah ibn Amr',
+        collection: 'Sahih al-Bukhari',
+        number: 6029,
+      },
+      {
+        text: 'None of you truly believes until he loves for his brother what he loves for himself.',
+        narrator: 'Narrated by Anas ibn Malik',
+        collection: 'Sahih al-Bukhari',
+        number: 13,
+      },
+      {
+        text: 'Actions are judged by intentions, and every person will get the reward according to what he has intended.',
+        narrator: 'Narrated by Umar ibn al-Khattab',
+        collection: 'Sahih al-Bukhari',
+        number: 1,
+      },
+      {
+        text: 'The strong man is not the one who can overpower others. Rather, the strong man is the one who controls himself when he is angry.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih al-Bukhari',
+        number: 6114,
+      },
+      {
+        text: 'Whoever believes in Allah and the Last Day, let him speak good or remain silent.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih al-Bukhari',
+        number: 6018,
+      },
+      {
+        text: 'The best of people are those who are most beneficial to people.',
+        narrator: 'Narrated by Jabir',
+        collection: 'al-Mu\'jam al-Awsat (Tabarani)',
+        number: 5787,
+      },
+      {
+        text: 'A Muslim is the one from whose tongue and hands the Muslims are safe.',
+        narrator: 'Narrated by Abdullah ibn Amr',
+        collection: 'Sahih al-Bukhari',
+        number: 10,
+      },
+      {
+        text: 'Do not be people without minds of your own, saying that if others treat you well you will treat them well and if they do wrong you will do wrong. But accustom yourselves to do good if people do good and not to do wrong if they do evil.',
+        narrator: 'Narrated by Hudhayfah',
+        collection: 'Jami` at-Tirmidhi',
+        number: 2007,
+      },
+      {
+        text: 'The best among you is the one who learns the Quran and teaches it.',
+        narrator: 'Narrated by Uthman ibn Affan',
+        collection: 'Sahih al-Bukhari',
+        number: 5027,
+      },
+      {
+        text: 'Make things easy and do not make them difficult, cheer people up and do not drive them away.',
+        narrator: 'Narrated by Anas ibn Malik',
+        collection: 'Sahih al-Bukhari',
+        number: 6125,
+      },
+      {
+        text: 'Whoever is kind, Allah will be kind to him; therefore be kind to man on the earth. He Who is in heaven will show mercy on you.',
+        narrator: 'Narrated by Abdullah ibn Amr',
+        collection: 'Sunan Abu Dawood',
+        number: 4941,
+      },
+      {
+        text: 'When a man dies, his deeds come to an end except for three things: ongoing charity, beneficial knowledge, or a righteous child who prays for him.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih Muslim',
+        number: 1631,
+      },
+      {
+        text: 'Smiling in the face of your brother is charity.',
+        narrator: 'Narrated by Abu Dharr',
+        collection: 'Jami` at-Tirmidhi',
+        number: 1956,
+      },
+      {
+        text: 'The most beloved deed to Allah is the most regular and constant even if it were little.',
+        narrator: 'Narrated by Aisha',
+        collection: 'Sahih al-Bukhari',
+        number: 6464,
+      },
+      {
+        text: 'Richness is not the abundance of wealth, rather it is self-sufficiency.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih al-Bukhari',
+        number: 6446,
+      },
+      {
+        text: 'He who eats his fill while his neighbor is hungry is not a believer.',
+        narrator: 'Narrated by Ibn Abbas',
+        collection: 'al-Sunan al-Kubra (Bayhaqi)',
+        number: 19049,
+      },
+      {
+        text: 'The best of charity is that given by one who has little.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sunan Abu Dawood',
+        number: 1677,
+      },
+      {
+        text: 'Whoever follows a path in pursuit of knowledge, Allah will make easy for him a path to Paradise.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih Muslim',
+        number: 2699,
+      },
+      {
+        text: 'Take advantage of five before five: your youth before your old age, your health before your illness, your wealth before your poverty, your free time before your busyness, and your life before your death.',
+        narrator: 'Narrated by Ibn Abbas',
+        collection: 'Musnad Ahmad',
+        number: 681,
+      },
+      {
+        text: 'Supplication (dua) is the essence of worship.',
+        narrator: 'Narrated by Anas ibn Malik',
+        collection: 'Jami` at-Tirmidhi',
+        number: 3371,
+      },
+      {
+        text: 'Verily Allah does not look at your appearance or wealth, but rather He looks at your hearts and actions.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih Muslim',
+        number: 2564,
+      },
+      {
+        text: 'The world is a prison for the believer and a paradise for the disbeliever.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih Muslim',
+        number: 2956,
+      },
+      {
+        text: 'Feed the hungry, visit the sick, and set free the captives.',
+        narrator: 'Narrated by Abu Musa',
+        collection: 'Sahih al-Bukhari',
+        number: 5649,
+      },
+      {
+        text: 'The believer is not stung from the same hole twice.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih al-Bukhari',
+        number: 6133,
+      },
+      {
+        text: 'Every Muslim has to give in charity. If he does not find anything to give, let him work with his hands. He can benefit himself and give in charity.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih al-Bukhari',
+        number: 1445,
+      },
+      {
+        text: 'Allah is gentle and loves gentleness. He gives for gentleness what He does not give for harshness.',
+        narrator: 'Narrated by Aisha',
+        collection: 'Sahih Muslim',
+        number: 2593,
+      },
+      {
+        text: 'The most perfect believer in faith is the best of them in character.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Jami` at-Tirmidhi',
+        number: 1162,
+      },
+      {
+        text: 'Part of the perfection of a person\'s Islam is his leaving that which is of no concern to him.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Jami` at-Tirmidhi',
+        number: 2317,
+      },
+      {
+        text: 'Whoever relieves the hardship of a believer in this world, Allah will relieve his hardship on the Day of Resurrection.',
+        narrator: 'Narrated by Abu Hurairah',
+        collection: 'Sahih Muslim',
+        number: 2699,
+      },
+      {
+        text: 'The best jihad is a word of truth before a tyrannical ruler.',
+        narrator: 'Narrated by Abu Said al-Khudri',
+        collection: 'Sunan Abu Dawood',
+        number: 4344,
+      },
+    ];
+
+    const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+    return hadiths[dayOfYear % hadiths.length];
+  }
+
+  /**
+   * Share verse of the day
+   */
+  async shareQuranVerse(quote) {
+    const message = `📖 Verse of the Day\n\n"${quote.text}"\n\n— ${quote.ref}\n\n🌙 Shared via Musafir App`;
+    try {
+      await Share.share({
+        message,
+        title: 'Verse of the Day — Musafir',
+      });
+    } catch (error) {
+      console.log('Error sharing verse:', error);
+    }
+  }
+
+  /**
+   * Share hadith of the day
+   */
+  async shareHadith(hadith) {
+    const message = `📿 Hadith of the Day\n\n"${hadith.text}"\n\n— ${hadith.narrator}\n📚 ${hadith.collection}, #${hadith.number}\n\n🌙 Shared via Musafir App`;
+    try {
+      await Share.share({
+        message,
+        title: 'Hadith of the Day — Musafir',
+      });
+    } catch (error) {
+      console.log('Error sharing hadith:', error);
+    }
+  }
+
+  /**
+   * Share Islamic event details
+   */
+  async shareEvent(event) {
+    let message = `${event.emoji} ${event.name}\n${event.nameAr || ''}\n\n${event.importance || ''}\n`;
+    if (event.quranRef?.text) {
+      message += `\n📖 "${event.quranRef.text}"\n— Quran ${event.quranRef.surah}:${event.quranRef.ayah}\n`;
+    }
+    if (event.dua) {
+      message += `\n🤲 Dua:\n${event.dua}\n`;
+    }
+    message += `\n🌙 Shared via Musafir App`;
+    try {
+      await Share.share({
+        message,
+        title: `${event.name} — Musafir`,
+      });
+    } catch (error) {
+      console.log('Error sharing event:', error);
+    }
+  }
+
+  /**
+   * Share the Musafir app
+   */
+  async shareApp() {
+    const message = `🌙 Musafir — Your Complete Islamic Companion\n\n📖 Quran with Translation & Tafseer\n📿 Hadith from Sihah Sittah\n🕌 Prayer Times & Tracking\n🧭 Qibla Compass\n📅 Hijri Calendar\n🤖 AI Islamic Assistant\n\nDownload Musafir and strengthen your connection with the Deen!\n\nhttps://musafir.app`;
+    try {
+      await Share.share({
+        message,
+        title: 'Musafir — Islamic App',
+      });
+    } catch (error) {
+      console.log('Error sharing app:', error);
+    }
   }
 }
 

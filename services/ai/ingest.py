@@ -6,7 +6,7 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import shutil
-from langchain_community.document_loaders import DirectoryLoader, PyPDFDirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader, PyPDFDirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
@@ -29,8 +29,8 @@ def ingest():
     # Load both TXT, PDF, and JSON files
     documents = []
     
-    # Load TXT files
-    txt_loader = DirectoryLoader("data", glob="**/*.txt")
+    # Load TXT files (use TextLoader to avoid needing 'unstructured' package)
+    txt_loader = DirectoryLoader("data", glob="**/*.txt", loader_cls=TextLoader, loader_kwargs={"encoding": "utf-8"})
     txt_docs = txt_loader.load()
     documents.extend(txt_docs)
     print(f"Loaded {len(txt_docs)} TXT files")
@@ -41,11 +41,21 @@ def ingest():
     documents.extend(pdf_docs)
     print(f"Loaded {len(pdf_docs)} PDF files")
     
-    # Load JSON files
-    json_loader = DirectoryLoader("data", glob="**/*.json", loader_cls=lambda path: __import__('langchain_community.document_loaders', fromlist=['JSONLoader']).JSONLoader(file_path=path, jq_schema='.', text_content=False))
-    json_docs = json_loader.load()
-    documents.extend(json_docs)
-    print(f"Loaded {len(json_docs)} JSON files")
+    # Load JSON files as text (avoids jq dependency)
+    import json, glob as globmod
+    from langchain_core.documents import Document
+    json_files = globmod.glob(os.path.join("data", "**/*.json"), recursive=True)
+    json_doc_count = 0
+    for jf in json_files:
+        try:
+            with open(jf, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            text = json.dumps(data, ensure_ascii=False, indent=None)
+            documents.append(Document(page_content=text, metadata={"source": os.path.abspath(jf)}))
+            json_doc_count += 1
+        except Exception as e:
+            print(f"Error loading JSON {jf}: {e}")
+    print(f"Loaded {json_doc_count} JSON files")
 
     if not documents:
         print("No documents found in 'data' directory!")

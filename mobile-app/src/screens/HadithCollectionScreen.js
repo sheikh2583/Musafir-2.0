@@ -9,6 +9,7 @@ import {
   Platform
 } from 'react-native';
 import { getCollectionHadith } from '../services/hadithService';
+import { useSettings } from '../context/SettingsContext';
 
 /**
  * HadithCollectionScreen - Browse hadith from a specific collection
@@ -22,6 +23,7 @@ import { getCollectionHadith } from '../services/hadithService';
  */
 export default function HadithCollectionScreen({ route, navigation }) {
   const { collectionId, collectionName, collectionNameArabic, collectionColor } = route.params;
+  const { settings } = useSettings();
   
   const [hadiths, setHadiths] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,13 +107,13 @@ export default function HadithCollectionScreen({ route, navigation }) {
 
       {/* Arabic Text */}
       <View style={styles.arabicContainer}>
-        <Text style={styles.arabicText}>{item.arabicText}</Text>
+        <Text style={[styles.arabicText, { fontSize: settings.hadithArabicFontSize, lineHeight: Math.round(settings.hadithArabicFontSize * 1.8) }]}>{item.arabicText}</Text>
       </View>
 
       {/* English Translation */}
       {item.translationEn && (
         <View style={styles.translationContainer}>
-          <Text style={styles.translationText}>{item.translationEn}</Text>
+          <Text style={[styles.translationText, { fontSize: settings.hadithEnglishFontSize, lineHeight: Math.round(settings.hadithEnglishFontSize * 1.6) }]}>{item.translationEn}</Text>
         </View>
       )}
 

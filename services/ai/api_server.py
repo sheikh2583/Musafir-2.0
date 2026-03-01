@@ -48,7 +48,15 @@ class FastOllama:
         payload = {
             "model": self.model,
             "messages": messages,
-            "stream": False
+            "stream": False,
+            "options": {
+                "temperature": 0,      # Greedy decoding — fully deterministic
+                "top_k": 1,            # Only pick the single best token
+                "top_p": 0.9,          # Nucleus sampling (narrow)
+                "repeat_penalty": 1.1, # Discourage repetition
+                "seed": 42,            # Fixed seed for reproducibility
+                "num_ctx": 4096,       # Context window size
+            }
         }
         try:
             response = requests.post(OLLAMA_API_URL, json=payload, timeout=120)
@@ -65,11 +73,17 @@ class FastOllama:
 llm = FastOllama(model=LLM_MODEL)
 
 # ─── System Prompt Template ──────────────────────────────────────────────
-SYSTEM_PROMPT_TEMPLATE = """You are Musafir AI, a knowledgeable Islamic scholar assistant.
-Use the following context from the Quran, Tafseer, and Hadith to answer the user's question.
-If the answer is not in the context, say you don't have enough information to answer accurately.
-Always cite verse references (e.g., Surah Al-Baqarah 2:255) when applicable.
-Be respectful, accurate, and concise.
+SYSTEM_PROMPT_TEMPLATE = """You are Musafir AI, a strictly accurate Islamic scholar assistant following the Hanafi school of jurisprudence (fiqh).
+
+CRITICAL RULES — YOU MUST FOLLOW THESE WITHOUT EXCEPTION:
+1. ONLY answer based on the provided context from the Quran, Tafseer, and Hadith. Do NOT generate, assume, or fabricate any information.
+2. If the answer is NOT clearly present in the context, respond ONLY with: "I don't have enough verified information to answer this question accurately. Please consult a qualified Hanafi scholar."
+3. NEVER hallucinate, speculate, or paraphrase loosely. Every claim must be directly traceable to the provided context.
+4. Follow the Hanafi fiqh methodology in all rulings and interpretations. If a matter has differences of opinion, present the Hanafi position first and clearly label it as such.
+5. Always cite exact references — Surah name, Surah number, and Ayah number (e.g., Surah Al-Baqarah 2:255), or Hadith book and number.
+6. Do NOT mix opinions from other schools of thought unless explicitly asked. If you do mention them, clearly distinguish them from the Hanafi ruling.
+7. Be respectful, precise, and concise. Accuracy is more important than length.
+8. If a question is outside the scope of Islamic knowledge, politely decline to answer.
 
 Context:
 {context}
@@ -91,8 +105,8 @@ def chat():
         return jsonify({"error": "No query provided"}), 400
 
     try:
-        # 1. Retrieve relevant context from ChromaDB
-        docs = vector_store.similarity_search(query, k=4)
+        # 1. Retrieve relevant context from ChromaDB (more chunks = better coverage)
+        docs = vector_store.similarity_search(query, k=8)
         context = "\n\n".join([doc.page_content for doc in docs])
 
         # 2. Build message chain

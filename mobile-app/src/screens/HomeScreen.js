@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, RefreshControl, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard, Share } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import IslamicCalendarService from '../services/IslamicCalendarService';
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
+  const scrollViewRef = useRef(null);
+  const postInputY = useRef(0);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,12 +29,19 @@ export default function HomeScreen({ navigation }) {
   // Islamic calendar state
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [dailyQuote, setDailyQuote] = useState(null);
+  const [dailyHadith, setDailyHadith] = useState(null);
   const [todayEvent, setTodayEvent] = useState(null);
   const [calendarLoading, setCalendarLoading] = useState(true);
   
   // Prayer waqt timer state
   const [currentPrayer, setCurrentPrayer] = useState(null);
+  const [nextPrayer, setNextPrayer] = useState(null);
   const [remainingTime, setRemainingTime] = useState(null);
+  const [isNextPrayerMode, setIsNextPrayerMode] = useState(false);
+  
+  // Forbidden prayer times state (Hanafi)
+  const [forbiddenTimes, setForbiddenTimes] = useState([]);
+  const [activeForbidden, setActiveForbidden] = useState(null);
 
   useEffect(() => {
     fetchMessages();
@@ -53,6 +62,9 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const timer = setInterval(() => {
       updatePrayerTimer();
+      // Refresh forbidden time status every tick
+      const currentForbidden = SalatService.getCurrentForbiddenTime();
+      setActiveForbidden(currentForbidden);
     }, 1000);
 
     return () => clearInterval(timer);
@@ -68,18 +80,29 @@ export default function HomeScreen({ navigation }) {
     const stats = await SalatService.getTodayStats();
     setSalatStats(stats);
     
+    // Load forbidden times (Hanafi)
+    const ft = SalatService.getAllForbiddenTimes();
+    setForbiddenTimes(ft);
+    const currentForbidden = SalatService.getCurrentForbiddenTime();
+    setActiveForbidden(currentForbidden);
+    
     // Load initial prayer timer
     updatePrayerTimer();
   };
 
   const updatePrayerTimer = () => {
     const current = SalatService.getCurrentPrayer();
+    const next = SalatService.getNextPrayer();
     setCurrentPrayer(current);
+    setNextPrayer(next);
+    
+    const now = new Date();
     
     if (current) {
-      const now = new Date();
+      // During a prayer window — show time remaining
+      setIsNextPrayerMode(false);
       const endTime = new Date();
-      endTime.setHours(current.endHour, 0, 0);
+      endTime.setHours(current.endHour, 0, 0, 0);
       
       const diffMs = endTime - now;
       if (diffMs > 0) {
@@ -93,6 +116,30 @@ export default function HomeScreen({ navigation }) {
           seconds,
           formatted: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
         });
+      }
+    } else if (next) {
+      // Between prayers — show countdown to next prayer
+      setIsNextPrayerMode(true);
+      const startTime = new Date();
+      if (next.tomorrow) {
+        startTime.setDate(startTime.getDate() + 1);
+      }
+      startTime.setHours(next.startHour, 0, 0, 0);
+      
+      const diffMs = startTime - now;
+      if (diffMs > 0) {
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        
+        setRemainingTime({
+          hours,
+          minutes,
+          seconds,
+          formatted: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        });
+      } else {
+        setRemainingTime(null);
       }
     } else {
       setRemainingTime(null);
@@ -117,6 +164,10 @@ export default function HomeScreen({ navigation }) {
       // Get daily quote
       const quote = IslamicCalendarService.getDailyQuote();
       setDailyQuote(quote);
+
+      // Get daily hadith (local — no API call)
+      const hadith = IslamicCalendarService.getDailyHadith();
+      setDailyHadith(hadith);
     } catch (error) {
       console.log('Error loading Islamic calendar:', error.message);
     } finally {
@@ -255,9 +306,14 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.outerContainer}>
+    <KeyboardAvoidingView
+      style={styles.outerContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
     <ScrollView
+      ref={scrollViewRef}
       style={styles.container}
+      keyboardShouldPersistTaps="handled"
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
@@ -299,38 +355,187 @@ export default function HomeScreen({ navigation }) {
       {dailyQuote && (
         <View style={styles.quoteCard}>
           <View style={styles.quoteHeader}>
-            <Ionicons name="book-outline" size={18} color="#D4A84B" />
-            <Text style={styles.quoteLabel}>Verse of the Day</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <Ionicons name="book-outline" size={18} color="#D4A84B" />
+              <Text style={styles.quoteLabel}>Verse of the Day</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => IslamicCalendarService.shareQuranVerse(dailyQuote)}
+              style={styles.shareIconBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="share-social-outline" size={20} color="#D4A84B" />
+            </TouchableOpacity>
           </View>
           <Text style={styles.quoteText}>"{dailyQuote.text}"</Text>
           <Text style={styles.quoteRef}>— {dailyQuote.ref}</Text>
         </View>
       )}
 
+      {/* Hadith of the Day Card */}
+      {dailyHadith && (
+        <View style={styles.hadithCard}>
+          <View style={styles.hadithHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <Ionicons name="library-outline" size={18} color="#81C784" />
+              <Text style={styles.hadithLabel}>Hadith of the Day</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => IslamicCalendarService.shareHadith(dailyHadith)}
+              style={styles.shareIconBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="share-social-outline" size={20} color="#81C784" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.hadithBodyText}>"{dailyHadith.text}"</Text>
+          <Text style={styles.hadithNarratorText}>— {dailyHadith.narrator}</Text>
+          <Text style={styles.hadithRefText}>{dailyHadith.collection}, #{dailyHadith.number}</Text>
+        </View>
+      )}
+
       {/* Prayer Waqt Timer Card */}
-      {currentPrayer && remainingTime && (
-        <View style={styles.timerCard}>
+      {remainingTime && (currentPrayer || nextPrayer) && (
+        <View style={[styles.timerCard, isNextPrayerMode && styles.timerCardNext]}>
           <View style={styles.timerHeader}>
-            <Ionicons name="time" size={20} color="#fff" />
-            <Text style={styles.timerLabel}>Current Prayer Time</Text>
+            <Ionicons name={isNextPrayerMode ? 'hourglass-outline' : 'time'} size={20} color={isNextPrayerMode ? '#B3B3B3' : '#D4A84B'} />
+            <Text style={[styles.timerLabel, isNextPrayerMode && styles.timerLabelNext]}>
+              {isNextPrayerMode ? 'Next Prayer' : 'Current Waqt'}
+            </Text>
           </View>
           <View style={styles.timerContent}>
             <View style={styles.timerPrayerInfo}>
-              <Text style={styles.timerPrayerName}>{currentPrayer.name}</Text>
-              <Text style={styles.timerPrayerNameAr}>{currentPrayer.nameAr}</Text>
+              <Text style={styles.timerPrayerName}>
+                {isNextPrayerMode ? nextPrayer?.name : currentPrayer?.name}
+              </Text>
+              <Text style={styles.timerPrayerNameAr}>
+                {isNextPrayerMode ? nextPrayer?.nameAr : currentPrayer?.nameAr}
+              </Text>
             </View>
             <View style={styles.timerDisplay}>
-              <Text style={styles.timerText}>{remainingTime.formatted}</Text>
-              <Text style={styles.timerSubtext}>remaining</Text>
+              <Text style={[styles.timerText, isNextPrayerMode && styles.timerTextNext]}>
+                {remainingTime.formatted}
+              </Text>
+              <Text style={styles.timerSubtext}>
+                {isNextPrayerMode ? 'starts in' : 'remaining'}
+              </Text>
             </View>
           </View>
-          <View style={styles.timerProgressBar}>
-            <View style={[styles.timerProgressFill, {
-              width: `${Math.max(0, Math.min(100, ((currentPrayer.endHour - currentPrayer.startHour - remainingTime.hours - (remainingTime.minutes / 60)) / (currentPrayer.endHour - currentPrayer.startHour)) * 100))}%`
-            }]} />
-          </View>
+          {!isNextPrayerMode && currentPrayer && (
+            <View style={styles.timerProgressBar}>
+              <View style={[styles.timerProgressFill, {
+                width: `${Math.max(0, Math.min(100, ((currentPrayer.endHour - currentPrayer.startHour - remainingTime.hours - (remainingTime.minutes / 60)) / (currentPrayer.endHour - currentPrayer.startHour)) * 100))}%`
+              }]} />
+            </View>
+          )}
         </View>
       )}
+
+      {/* ─── Forbidden Prayer Times Card (Hanafi) ─── */}
+      <View style={styles.forbiddenCard}>
+        <View style={styles.forbiddenHeader}>
+          <Text style={styles.forbiddenTitle}>⛔ Forbidden Prayer Times</Text>
+          <Text style={styles.forbiddenMadhab}>Hanafi</Text>
+        </View>
+        
+        {/* Active Warning Banner */}
+        {activeForbidden && (
+          <View style={[
+            styles.forbiddenBanner,
+            activeForbidden.severity === 'haram' ? styles.forbiddenBannerHaram : styles.forbiddenBannerMakruh,
+          ]}>
+            <Text style={styles.forbiddenBannerIcon}>{activeForbidden.icon}</Text>
+            <View style={styles.forbiddenBannerText}>
+              <Text style={styles.forbiddenBannerTitle}>
+                {activeForbidden.severity === 'haram' ? '🚫 DO NOT PRAY NOW' : '⚠️ Avoid Nafl Prayers'}
+              </Text>
+              <Text style={styles.forbiddenBannerDesc}>{activeForbidden.description}</Text>
+              <Text style={styles.forbiddenBannerTime}>
+                {activeForbidden.remainingMinutes} min remaining
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Haram Times */}
+        <Text style={styles.forbiddenSectionLabel}>
+          🚫 Strictly Forbidden (Haram)
+        </Text>
+        {forbiddenTimes.filter(ft => ft.severity === 'haram').map((ft) => (
+          <View key={ft.key} style={[
+            styles.forbiddenRow,
+            ft.isActive && styles.forbiddenRowActive,
+            ft.isPast && styles.forbiddenRowPast,
+          ]}>
+            <Text style={styles.forbiddenRowIcon}>{ft.icon}</Text>
+            <View style={styles.forbiddenRowInfo}>
+              <View style={styles.forbiddenRowNameRow}>
+                <Text style={[styles.forbiddenRowName, ft.isPast && styles.forbiddenRowTextPast]}>
+                  {ft.name}
+                </Text>
+                <Text style={[styles.forbiddenRowNameAr, ft.isPast && styles.forbiddenRowTextPast]}>
+                  {ft.nameAr}
+                </Text>
+              </View>
+              <Text style={[styles.forbiddenRowTime, ft.isPast && styles.forbiddenRowTextPast]}>
+                {ft.timeRange}
+              </Text>
+            </View>
+            <View style={[
+              styles.forbiddenStatusBadge,
+              ft.isActive ? styles.forbiddenStatusActive :
+              ft.isPast ? styles.forbiddenStatusPast :
+              styles.forbiddenStatusUpcoming,
+            ]}>
+              <Text style={styles.forbiddenStatusText}>
+                {ft.isActive ? `${ft.remainingMinutes}m` : ft.isPast ? 'Done' : 'Later'}
+              </Text>
+            </View>
+          </View>
+        ))}
+
+        {/* Makruh Times */}
+        <Text style={[styles.forbiddenSectionLabel, { marginTop: 10 }]}>
+          ⚠️ Disliked (Makruh Tahrimi)
+        </Text>
+        {forbiddenTimes.filter(ft => ft.severity === 'makruh').map((ft) => (
+          <View key={ft.key} style={[
+            styles.forbiddenRow,
+            ft.isActive && styles.forbiddenRowActiveMakruh,
+            ft.isPast && styles.forbiddenRowPast,
+          ]}>
+            <Text style={styles.forbiddenRowIcon}>{ft.icon}</Text>
+            <View style={styles.forbiddenRowInfo}>
+              <View style={styles.forbiddenRowNameRow}>
+                <Text style={[styles.forbiddenRowName, ft.isPast && styles.forbiddenRowTextPast]}>
+                  {ft.name}
+                </Text>
+                <Text style={[styles.forbiddenRowNameAr, ft.isPast && styles.forbiddenRowTextPast]}>
+                  {ft.nameAr}
+                </Text>
+              </View>
+              <Text style={[styles.forbiddenRowTime, ft.isPast && styles.forbiddenRowTextPast]}>
+                {ft.timeRange}
+              </Text>
+            </View>
+            <View style={[
+              styles.forbiddenStatusBadge,
+              ft.isActive ? styles.forbiddenStatusActiveMakruh :
+              ft.isPast ? styles.forbiddenStatusPast :
+              styles.forbiddenStatusUpcoming,
+            ]}>
+              <Text style={styles.forbiddenStatusText}>
+                {ft.isActive ? `${ft.remainingMinutes}m` : ft.isPast ? 'Done' : 'Later'}
+              </Text>
+            </View>
+          </View>
+        ))}
+
+        {/* Reference */}
+        <Text style={styles.forbiddenReference}>
+          Based on Sahih Muslim 831a & Sahih al-Bukhari 586, 588
+        </Text>
+      </View>
 
       {/* Salat Tracking Card */}
       <View style={styles.salatCard}>
@@ -396,6 +601,102 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Qibla Compass Card */}
+      <TouchableOpacity
+        style={styles.qiblaCard}
+        onPress={() => navigation.navigate('QiblaCompass')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.qiblaCardLeft}>
+          <Text style={styles.qiblaCardEmoji}>🕋</Text>
+          <View style={styles.qiblaCardText}>
+            <Text style={styles.qiblaCardTitle}>Qibla Compass</Text>
+            <Text style={styles.qiblaCardSubtitle}>Find the direction of the Kaaba</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
+      {/* Nearby Mosques Card */}
+      <TouchableOpacity
+        style={styles.mosqueCard}
+        onPress={() => navigation.navigate('NearbyMosques')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.mosqueCardLeft}>
+          <Text style={styles.mosqueCardEmoji}>🕌</Text>
+          <View style={styles.mosqueCardText}>
+            <Text style={styles.mosqueCardTitle}>Nearby Mosques</Text>
+            <Text style={styles.mosqueCardSubtitle}>Find mosques around you</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
+      {/* Zakat Calculator Card */}
+      <TouchableOpacity
+        style={styles.zakatCard}
+        onPress={() => navigation.navigate('ZakatCalculator')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.zakatCardLeft}>
+          <Text style={styles.zakatCardEmoji}>💰</Text>
+          <View style={styles.zakatCardText}>
+            <Text style={styles.zakatCardTitle}>Zakat Calculator</Text>
+            <Text style={styles.zakatCardSubtitle}>Calculate nisab & donate to verified foundations</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
+      {/* Dua & Adhkar Card */}
+      <TouchableOpacity
+        style={styles.duaCard}
+        onPress={() => navigation.navigate('DuaCategory')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.duaCardLeft}>
+          <Text style={styles.duaCardEmoji}>🤲</Text>
+          <View style={styles.duaCardText}>
+            <Text style={styles.duaCardTitle}>Dua & Adhkar</Text>
+            <Text style={styles.duaCardSubtitle}>Daily supplications & remembrances</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
+      {/* Islamic Lectures Card */}
+      <TouchableOpacity
+        style={styles.lecturesCard}
+        onPress={() => navigation.navigate('LectureSpeakers')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.lecturesCardLeft}>
+          <Text style={styles.lecturesCardEmoji}>🎙️</Text>
+          <View style={styles.lecturesCardText}>
+            <Text style={styles.lecturesCardTitle}>Islamic Lectures</Text>
+            <Text style={styles.lecturesCardSubtitle}>900+ lectures from top scholars</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
+      {/* Musafir (Traveller) Card */}
+      <TouchableOpacity
+        style={styles.musafirCard}
+        onPress={() => navigation.navigate('MusafirStatus')}
+        activeOpacity={0.8}
+      >
+        <View style={styles.musafirCardLeft}>
+          <Text style={styles.musafirCardEmoji}>🕌</Text>
+          <View style={styles.musafirCardText}>
+            <Text style={styles.musafirCardTitle}>Musafir Status</Text>
+            <Text style={styles.musafirCardSubtitle}>Qasr prayers, Sehri & Iftar times</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+      </TouchableOpacity>
+
       {/* Upcoming Islamic Events Card */}
       {calendarLoading ? (
         <View style={styles.loadingCard}>
@@ -413,11 +714,7 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity 
               key={index} 
               style={[styles.eventItem, index === upcomingEvents.length - 1 && { borderBottomWidth: 0 }]}
-              onPress={() => Alert.alert(
-                `${event.emoji} ${event.name}`,
-                `${event.importance}\n\n📖 "${event.quranRef?.text || ''}"\n— Quran ${event.quranRef?.surah || ''}:${event.quranRef?.ayah || ''}`,
-                [{ text: 'OK' }]
-              )}
+              onPress={() => navigation.navigate('HijriCalendar')}
             >
               <View style={[styles.eventBadge, { backgroundColor: IslamicCalendarService.getEventColor(event.type) }]}>
                 <Text style={styles.eventEmoji}>{event.emoji}</Text>
@@ -442,6 +739,7 @@ export default function HomeScreen({ navigation }) {
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Search users by name..."
+          placeholderTextColor="#808080"
           value={searchQuery}
           onChangeText={setSearchQuery}
           onFocus={handleSearchFocus}
@@ -483,14 +781,23 @@ export default function HomeScreen({ navigation }) {
         )}
       </View>
 
-      <View style={styles.messageInputContainer}>
+      <View
+        style={styles.messageInputContainer}
+        onLayout={(e) => { postInputY.current = e.nativeEvent.layout.y; }}
+      >
         <TextInput
           style={styles.messageInput}
           placeholder="Share your thoughts..."
+          placeholderTextColor="#808080"
           value={message}
           onChangeText={setMessage}
           multiline={true}
           maxLength={500}
+          onFocus={() => {
+            setTimeout(() => {
+              scrollViewRef.current?.scrollTo({ y: postInputY.current - 100, animated: true });
+            }, 300);
+          }}
         />
         <TouchableOpacity
           style={[styles.postButton, loading && styles.postButtonDisabled]}
@@ -542,6 +849,22 @@ export default function HomeScreen({ navigation }) {
           ))
         )}
       </View>
+
+      {/* Share App Button */}
+      <TouchableOpacity
+        style={styles.shareAppCard}
+        onPress={() => IslamicCalendarService.shareApp()}
+        activeOpacity={0.8}
+      >
+        <View style={styles.shareAppContent}>
+          <Ionicons name="heart" size={24} color="#E91E63" />
+          <View style={styles.shareAppTextWrap}>
+            <Text style={styles.shareAppTitle}>Share Musafir</Text>
+            <Text style={styles.shareAppSubtitle}>Invite friends & earn rewards</Text>
+          </View>
+        </View>
+        <Ionicons name="share-social" size={22} color="#D4A84B" />
+      </TouchableOpacity>
     </ScrollView>
     
     {/* AI Chat Floating Action Button */}
@@ -552,7 +875,7 @@ export default function HomeScreen({ navigation }) {
     >
       <Ionicons name="sparkles" size={24} color="#000" />
     </TouchableOpacity>
-  </View>
+  </KeyboardAvoidingView>
   );
 }
 
@@ -760,6 +1083,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#D4A84B',
     borderRadius: 2,
   },
+  timerCardNext: {
+    borderColor: '#333333',
+    shadowColor: '#000',
+  },
+  timerLabelNext: {
+    color: '#B3B3B3',
+  },
+  timerTextNext: {
+    color: '#FFFFFF',
+  },
   // Loading card
   loadingCard: {
     backgroundColor: '#1E1E1E',
@@ -772,6 +1105,168 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#B3B3B3',
     fontSize: 14,
+  },
+  // ─── Forbidden Times Styles ──────────────────────────
+  forbiddenCard: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+  },
+  forbiddenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  forbiddenTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#F44336',
+  },
+  forbiddenMadhab: {
+    fontSize: 12,
+    color: '#D4A84B',
+    backgroundColor: 'rgba(212,168,75,0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    fontWeight: '600',
+    overflow: 'hidden',
+  },
+  forbiddenBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 14,
+  },
+  forbiddenBannerHaram: {
+    backgroundColor: 'rgba(244,67,54,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(244,67,54,0.3)',
+  },
+  forbiddenBannerMakruh: {
+    backgroundColor: 'rgba(255,152,0,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,152,0,0.3)',
+  },
+  forbiddenBannerIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  forbiddenBannerText: {
+    flex: 1,
+  },
+  forbiddenBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#F44336',
+    marginBottom: 2,
+  },
+  forbiddenBannerDesc: {
+    fontSize: 12,
+    color: '#E0E0E0',
+    lineHeight: 16,
+  },
+  forbiddenBannerTime: {
+    fontSize: 13,
+    color: '#FF8A80',
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  forbiddenSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#B3B3B3',
+    marginBottom: 8,
+  },
+  forbiddenRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    marginBottom: 4,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  forbiddenRowActive: {
+    backgroundColor: 'rgba(244,67,54,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(244,67,54,0.25)',
+  },
+  forbiddenRowActiveMakruh: {
+    backgroundColor: 'rgba(255,152,0,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,152,0,0.2)',
+  },
+  forbiddenRowPast: {
+    opacity: 0.45,
+  },
+  forbiddenRowIcon: {
+    fontSize: 20,
+    marginRight: 10,
+    width: 28,
+    textAlign: 'center',
+  },
+  forbiddenRowInfo: {
+    flex: 1,
+  },
+  forbiddenRowNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  forbiddenRowName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  forbiddenRowNameAr: {
+    fontSize: 14,
+    color: '#D4A84B',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif',
+  },
+  forbiddenRowTime: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 1,
+  },
+  forbiddenRowTextPast: {
+    color: '#666',
+  },
+  forbiddenStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    minWidth: 44,
+    alignItems: 'center',
+  },
+  forbiddenStatusActive: {
+    backgroundColor: 'rgba(244,67,54,0.25)',
+  },
+  forbiddenStatusActiveMakruh: {
+    backgroundColor: 'rgba(255,152,0,0.2)',
+  },
+  forbiddenStatusPast: {
+    backgroundColor: 'rgba(76,175,80,0.15)',
+  },
+  forbiddenStatusUpcoming: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  forbiddenStatusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#E0E0E0',
+  },
+  forbiddenReference: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   salatCard: {
     backgroundColor: '#1E1E1E',
@@ -1167,5 +1662,314 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 18,
+  },
+  // Qibla Compass Card
+  qiblaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  qiblaCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  qiblaCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  qiblaCardText: {
+    flex: 1,
+  },
+  qiblaCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  qiblaCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  // Nearby Mosques Card
+  mosqueCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  mosqueCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  mosqueCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  mosqueCardText: {
+    flex: 1,
+  },
+  mosqueCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  mosqueCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  // Zakat Calculator Card
+  zakatCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  zakatCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  zakatCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  zakatCardText: {
+    flex: 1,
+  },
+  zakatCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  zakatCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  duaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  duaCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  duaCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  duaCardText: {
+    flex: 1,
+  },
+  duaCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  duaCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  // Islamic Lectures Card
+  lecturesCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  lecturesCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  lecturesCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  lecturesCardText: {
+    flex: 1,
+  },
+  lecturesCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  lecturesCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  // Musafir (Traveller) Card
+  musafirCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  musafirCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  musafirCardEmoji: {
+    fontSize: 36,
+    marginRight: 14,
+  },
+  musafirCardText: {
+    flex: 1,
+  },
+  musafirCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  musafirCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+  },
+  // Share icon button (used in quote/hadith cards)
+  shareIconBtn: {
+    padding: 6,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  // Hadith of the Day Card
+  hadithCard: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#81C784',
+  },
+  hadithHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  hadithLabel: {
+    fontSize: 12,
+    color: '#81C784',
+    fontWeight: '600',
+    marginLeft: 6,
+    textTransform: 'uppercase',
+  },
+  hadithBodyText: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontStyle: 'italic',
+    lineHeight: 23,
+  },
+  hadithNarratorText: {
+    fontSize: 12,
+    color: '#81C784',
+    marginTop: 10,
+    fontWeight: '500',
+  },
+  hadithRefText: {
+    fontSize: 11,
+    color: '#808080',
+    marginTop: 3,
+  },
+  // Share App Card
+  shareAppCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 10,
+    marginBottom: 80,
+    borderWidth: 1,
+    borderColor: '#333',
+    borderStyle: 'dashed',
+  },
+  shareAppContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  shareAppTextWrap: {
+    marginLeft: 14,
+  },
+  shareAppTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  shareAppSubtitle: {
+    fontSize: 12,
+    color: '#808080',
+    marginTop: 2,
   },
 });

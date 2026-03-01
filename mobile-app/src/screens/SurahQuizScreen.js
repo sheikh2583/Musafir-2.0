@@ -15,7 +15,8 @@ import { API_URL } from '../services/api';
 const { width } = Dimensions.get('window');
 
 const SurahQuizScreen = ({ route, navigation }) => {
-  const { surahNumber, surahName, surahNameArabic } = route.params;
+  const { surahNumber, surahName, surahNameArabic, ayahStart, ayahEnd } = route.params;
+  const hasRange = ayahStart != null && ayahEnd != null;
 
   const [loading, setLoading] = useState(true);
   const [quizData, setQuizData] = useState(null);
@@ -88,10 +89,41 @@ const SurahQuizScreen = ({ route, navigation }) => {
       // Transform tafsir items to quiz questions
       const tafsirQuiz = tafsirItems.map(item => transformTafsirToQuestion(item));
 
+      // Filter by ayah range if specified
+      let filteredVocab = vocabularyQuiz;
+      let filteredTafsir = tafsirQuiz;
+
+      if (hasRange) {
+        filteredVocab = vocabularyQuiz.filter(q => {
+          const ref = q.ayahRef; // e.g. "2:10"
+          if (!ref) return false;
+          const ayahNum = parseInt(ref.split(':')[1], 10);
+          return !isNaN(ayahNum) && ayahNum >= ayahStart && ayahNum <= ayahEnd;
+        });
+
+        filteredTafsir = tafsirQuiz.filter(q => {
+          const ref = q.ayahRef; // e.g. "2:5" or "Ayah 5"
+          if (!ref) return false;
+          // Try parsing "surah:ayah" format
+          const colonParts = ref.split(':');
+          if (colonParts.length === 2) {
+            const ayahNum = parseInt(colonParts[1], 10);
+            return !isNaN(ayahNum) && ayahNum >= ayahStart && ayahNum <= ayahEnd;
+          }
+          // Try parsing "Ayah N" format
+          const match = ref.match(/(\d+)/);
+          if (match) {
+            const ayahNum = parseInt(match[1], 10);
+            return !isNaN(ayahNum) && ayahNum >= ayahStart && ayahNum <= ayahEnd;
+          }
+          return false;
+        });
+      }
+
       setQuizData({
         ...apiData,
-        vocabularyQuiz: vocabularyQuiz,
-        tafsirQuiz: tafsirQuiz
+        vocabularyQuiz: filteredVocab,
+        tafsirQuiz: filteredTafsir
       });
 
       // Reset quiz state
@@ -167,7 +199,7 @@ const SurahQuizScreen = ({ route, navigation }) => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#D4A84B" />
-        <Text style={styles.loadingText}>Loading Quiz for {surahName}...</Text>
+        <Text style={styles.loadingText}>Loading Quiz for {surahName}{hasRange ? ` (Ayah ${ayahStart}-${ayahEnd})` : ''}...</Text>
       </View>
     );
   }
@@ -296,7 +328,9 @@ const SurahQuizScreen = ({ route, navigation }) => {
       <View style={styles.header}>
         <View style={styles.surahInfo}>
           <Text style={styles.surahNameArabic}>{surahNameArabic}</Text>
-          <Text style={styles.surahNameEnglish}>{surahName}</Text>
+          <Text style={styles.surahNameEnglish}>
+            {surahName}{hasRange ? `  (Ayah ${ayahStart}–${ayahEnd})` : ''}
+          </Text>
         </View>
         <View style={styles.progressInfo}>
           <Text style={styles.progressText}>

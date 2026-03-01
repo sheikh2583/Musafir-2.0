@@ -15,6 +15,90 @@ const PRAYER_TIMES = {
 
 const PRAYER_ORDER = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
+// ─── Forbidden Prayer Times (Hanafi Madhab) ──────────────────
+// According to the Hanafi school, there are 3 strictly forbidden (haram)
+// times and 2 disliked (makruh tahrimi) times for voluntary (nafl) prayers.
+//
+// HARAM times (no prayer at all — not even qada):
+//   1. Sunrise — from when the sun begins to rise until ~20 min after
+//   2. Zenith (istiwa) — when the sun is at its peak (just before Dhuhr)
+//   3. Sunset — from when the sun begins to set until it fully sets
+//
+// MAKRUH TAHRIMI (disliked, should avoid nafl prayers):
+//   4. After Fajr prayer — from after praying Fajr until sunrise
+//   5. After Asr prayer — from after praying Asr until sunset
+//
+// Note: Using approximate fixed hours. A production app would use
+// location-based sun position calculations.
+
+const FORBIDDEN_TIMES = [
+  {
+    key: 'sunrise',
+    name: 'Sunrise',
+    nameAr: 'الشروق',
+    startHour: 6,
+    startMinute: 0,
+    endHour: 6,
+    endMinute: 20,
+    severity: 'haram',
+    icon: '🌅',
+    description: 'Prayer is strictly forbidden while the sun is rising.',
+    reference: 'Sahih Muslim 831a — The Prophet ﷺ forbade prayer at sunrise until the sun has fully risen.',
+  },
+  {
+    key: 'zenith',
+    name: 'Solar Zenith',
+    nameAr: 'الاستواء',
+    startHour: 11,
+    startMinute: 45,
+    endHour: 12,
+    endMinute: 5,
+    severity: 'haram',
+    icon: '☀️',
+    description: 'Prayer is strictly forbidden when the sun is at its peak (istiwa).',
+    reference: 'Sahih Muslim 831a — The Prophet ﷺ forbade prayer when the sun is at its zenith.',
+  },
+  {
+    key: 'sunset',
+    name: 'Sunset',
+    nameAr: 'الغروب',
+    startHour: 17,
+    startMinute: 40,
+    endHour: 18,
+    endMinute: 0,
+    severity: 'haram',
+    icon: '🌇',
+    description: 'Prayer is strictly forbidden while the sun is setting.',
+    reference: 'Sahih Muslim 831a — The Prophet ﷺ forbade prayer at sunset until it has fully set.',
+  },
+  {
+    key: 'after_fajr',
+    name: 'After Fajr',
+    nameAr: 'بعد الفجر',
+    startHour: 5,
+    startMinute: 30,
+    endHour: 6,
+    endMinute: 0,
+    severity: 'makruh',
+    icon: '🌙',
+    description: 'Voluntary (nafl) prayers are disliked after praying Fajr until sunrise.',
+    reference: 'Sahih al-Bukhari 586 — No prayer after Fajr until the sun has risen.',
+  },
+  {
+    key: 'after_asr',
+    name: 'After Asr',
+    nameAr: 'بعد العصر',
+    startHour: 16,
+    startMinute: 0,
+    endHour: 17,
+    endMinute: 40,
+    severity: 'makruh',
+    icon: '🌤️',
+    description: 'Voluntary (nafl) prayers are disliked after praying Asr until sunset.',
+    reference: 'Sahih al-Bukhari 588 — No prayer after Asr until the sun has set.',
+  },
+];
+
 class SalatService {
   // Get today's date key
   getTodayKey() {
@@ -44,6 +128,71 @@ class SalatService {
 
     // If after isha or before fajr, return null (no current prayer window)
     return null;
+  }
+
+  // ─── Forbidden Times Helpers (Hanafi) ─────────────────────
+  // Get current forbidden time status (if we're in one right now)
+  getCurrentForbiddenTime() {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    for (const ft of FORBIDDEN_TIMES) {
+      const startMin = ft.startHour * 60 + ft.startMinute;
+      const endMin = ft.endHour * 60 + ft.endMinute;
+      if (currentMinutes >= startMin && currentMinutes < endMin) {
+        // Calculate remaining minutes
+        const remaining = endMin - currentMinutes;
+        return {
+          ...ft,
+          remainingMinutes: remaining,
+          active: true,
+        };
+      }
+    }
+    return null;
+  }
+
+  // Get the next upcoming forbidden time
+  getNextForbiddenTime() {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    let closest = null;
+    let closestDiff = Infinity;
+
+    for (const ft of FORBIDDEN_TIMES) {
+      const startMin = ft.startHour * 60 + ft.startMinute;
+      let diff = startMin - currentMinutes;
+      if (diff < 0) diff += 24 * 60; // wrap to next day
+      if (diff > 0 && diff < closestDiff) {
+        closestDiff = diff;
+        closest = { ...ft, startsIn: diff };
+      }
+    }
+    return closest;
+  }
+
+  // Get all forbidden times with their current status
+  getAllForbiddenTimes() {
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return FORBIDDEN_TIMES.map(ft => {
+      const startMin = ft.startHour * 60 + ft.startMinute;
+      const endMin = ft.endHour * 60 + ft.endMinute;
+      const isActive = currentMinutes >= startMin && currentMinutes < endMin;
+      const isPast = currentMinutes >= endMin;
+      const remaining = isActive ? endMin - currentMinutes : 0;
+
+      return {
+        ...ft,
+        isActive,
+        isPast,
+        isUpcoming: !isActive && !isPast,
+        remainingMinutes: remaining,
+        timeRange: `${String(ft.startHour).padStart(2, '0')}:${String(ft.startMinute).padStart(2, '0')} – ${String(ft.endHour).padStart(2, '0')}:${String(ft.endMinute).padStart(2, '0')}`,
+      };
+    });
   }
 
   // Get next prayer
@@ -321,3 +470,4 @@ class SalatService {
 }
 
 export default new SalatService();
+export { PRAYER_TIMES, PRAYER_ORDER, FORBIDDEN_TIMES };

@@ -212,6 +212,11 @@ export default function AIChatScreen({ navigation }) {
         </View>
       )}
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
@@ -219,6 +224,7 @@ export default function AIChatScreen({ navigation }) {
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.messagesList}
+        keyboardShouldPersistTaps="handled"
         onContentSizeChange={() =>
           flatListRef.current?.scrollToEnd({ animated: true })
         }
@@ -236,10 +242,6 @@ export default function AIChatScreen({ navigation }) {
       )}
 
       {/* Input Area */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}

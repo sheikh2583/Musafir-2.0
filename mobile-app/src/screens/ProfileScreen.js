@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import SalatService from '../services/SalatService';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const { user, logout } = useAuth();
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -124,6 +124,22 @@ export default function ProfileScreen() {
                   : '🏆 MashaAllah! You\'re a true champion!'}
           </Text>
         </View>
+
+        {/* Settings Card */}
+        <TouchableOpacity
+          style={styles.settingsCard}
+          onPress={() => navigation.navigate('Settings')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.settingsCardLeft}>
+            <Ionicons name="settings-outline" size={24} color="#D4A84B" />
+            <View style={styles.settingsCardText}>
+              <Text style={styles.settingsCardTitle}>Settings</Text>
+              <Text style={styles.settingsCardSubtitle}>Font sizes, reading preferences</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomContainer}>
@@ -268,6 +284,36 @@ const styles = StyleSheet.create({
     color: '#808080',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  settingsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 30,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+  },
+  settingsCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingsCardText: {
+    marginLeft: 14,
+    flex: 1,
+  },
+  settingsCardTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 3,
+  },
+  settingsCardSubtitle: {
+    fontSize: 12,
+    color: '#808080',
   },
   bottomContainer: {
     padding: 20,

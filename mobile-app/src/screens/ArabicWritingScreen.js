@@ -57,7 +57,7 @@ const ArabicWritingScreen = ({ navigation }) => {
         const pathData = currentPathRef.current.join(' ');
         const newPath = {
           d: pathData,
-          color: tool === 'eraser' ? '#F5F5F5' : '#000000',
+          color: tool === 'eraser' ? '#1E1E1E' : '#FFFFFF',
           width: tool === 'eraser' ? 20 : 4
         };
         setPaths(prev => [...prev, newPath]);
@@ -143,7 +143,7 @@ const ArabicWritingScreen = ({ navigation }) => {
             {currentPath.length > 0 && (
               <Path
                 d={currentPath.join(' ')}
-                stroke={tool === 'eraser' ? '#F5F5F5' : '#000000'}
+                stroke={tool === 'eraser' ? '#1E1E1E' : '#FFFFFF'}
                 strokeWidth={tool === 'eraser' ? 20 : 4}
                 fill="none"
                 strokeLinecap="round"

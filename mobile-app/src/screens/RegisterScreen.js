@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegisterScreen({ navigation }) {
@@ -34,7 +34,15 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+    <ScrollView
+      style={{ flex: 1 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.content}>
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Join our Islamic community</Text>
@@ -42,6 +50,7 @@ export default function RegisterScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Full Name *"
+          placeholderTextColor="#808080"
           value={name}
           onChangeText={setName}
         />
@@ -49,6 +58,7 @@ export default function RegisterScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Email *"
+          placeholderTextColor="#808080"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -58,6 +68,7 @@ export default function RegisterScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Phone Number"
+          placeholderTextColor="#808080"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
           keyboardType="phone-pad"
@@ -66,6 +77,7 @@ export default function RegisterScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Password (min 6 characters) *"
+          placeholderTextColor="#808080"
           value={password}
           onChangeText={setPassword}
           secureTextEntry={true}
@@ -80,6 +92,7 @@ export default function RegisterScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -10,12 +10,17 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import IslamicCalendarService from '../services/IslamicCalendarService';
+import NotificationService from '../services/NotificationService';
 
 const NOTES_STORAGE_KEY = '@hijri_calendar_notes';
+const REMINDERS_STORAGE_KEY = '@hijri_calendar_reminders';
 
 // Hijri month data
 const HIJRI_MONTHS = [
@@ -33,19 +38,115 @@ const HIJRI_MONTHS = [
   { name: 'Dhul Hijjah', nameAr: 'ذو الحجة', days: 29 },
 ];
 
-// Islamic events
+// Islamic events with rich local content (no API calls needed)
 const ISLAMIC_EVENTS = {
-  '1-1': { name: 'Islamic New Year', emoji: '🌙', type: 'holiday' },
-  '1-10': { name: 'Day of Ashura', emoji: '📿', type: 'fasting' },
-  '3-12': { name: 'Mawlid an-Nabi', emoji: '🕌', type: 'holiday' },
-  '7-27': { name: "Isra' and Mi'raj", emoji: '✨', type: 'holiday' },
-  '8-15': { name: "Laylat al-Bara'ah", emoji: '🌟', type: 'special' },
-  '9-1': { name: 'Ramadan Begins', emoji: '🌙', type: 'ramadan' },
-  '9-27': { name: 'Laylat al-Qadr', emoji: '⭐', type: 'special' },
-  '10-1': { name: 'Eid al-Fitr', emoji: '🎉', type: 'eid' },
-  '12-8': { name: 'Day of Tarwiyah', emoji: '🕋', type: 'hajj' },
-  '12-9': { name: 'Day of Arafah', emoji: '⛰️', type: 'fasting' },
-  '12-10': { name: 'Eid al-Adha', emoji: '🐑', type: 'eid' },
+  '1-1': {
+    name: 'Islamic New Year',
+    nameAr: 'رأس السنة الهجرية',
+    emoji: '🌙',
+    type: 'holiday',
+    importance: 'Marks the beginning of the Islamic lunar calendar and commemorates the Hijra (migration) of Prophet Muhammad ﷺ from Makkah to Madinah.',
+    quranRef: { surah: 9, ayah: 40, text: 'If you do not aid him, Allah has already aided him when those who disbelieved had driven him out...' },
+    dua: 'اللَّهُمَّ أَدْخِلْهُ عَلَيْنَا بِالأَمْنِ وَالإِيمَانِ وَالسَّلَامَةِ وَالإِسْلَامِ\nO Allah, bring this (new year) upon us with security, faith, safety, and Islam.',
+  },
+  '1-10': {
+    name: 'Day of Ashura',
+    nameAr: 'يوم عاشوراء',
+    emoji: '📿',
+    type: 'fasting',
+    importance: 'A day of fasting. Prophet Musa (Moses) and his people were saved from Pharaoh on this day. Fasting expiates sins of the previous year.',
+    quranRef: { surah: 26, ayah: 65, text: 'And We saved Moses and those with him, all together.' },
+    dua: 'اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ\nO Allah, I ask You for forgiveness and well-being.',
+    practices: ['Fast on the 9th and 10th of Muharram', 'Remember the sacrifices of the prophets', 'Give charity and feed the poor'],
+  },
+  '3-12': {
+    name: 'Mawlid an-Nabi ﷺ',
+    nameAr: 'المولد النبوي',
+    emoji: '🕌',
+    type: 'holiday',
+    importance: 'Commemorates the birth of Prophet Muhammad ﷺ. A time to reflect on his life, teachings, and character.',
+    quranRef: { surah: 21, ayah: 107, text: 'And We have not sent you except as a mercy to the worlds.' },
+    dua: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ\nO Allah, send blessings upon Muhammad and the family of Muhammad.',
+    practices: ['Send abundant salawat upon the Prophet ﷺ', 'Study the Seerah (biography)', 'Practice his Sunnah'],
+  },
+  '7-27': {
+    name: "Isra' and Mi'raj",
+    nameAr: 'الإسراء والمعراج',
+    emoji: '✨',
+    type: 'holiday',
+    importance: "The miraculous night journey of Prophet Muhammad ﷺ from Makkah to Jerusalem and ascension to the heavens. The five daily prayers were prescribed.",
+    quranRef: { surah: 17, ayah: 1, text: 'Glory to Him who took His servant by night from al-Masjid al-Haram to al-Masjid al-Aqsa, whose surroundings We have blessed...' },
+    dua: 'سُبْحَانَ الَّذِي أَسْرَى بِعَبْدِهِ لَيْلًا مِنَ الْمَسْجِدِ الْحَرَامِ إِلَى الْمَسْجِدِ الْأَقْصَى\nGlory be to Him who took His servant on a journey by night.',
+  },
+  '8-15': {
+    name: "Laylat al-Bara'ah",
+    nameAr: 'ليلة البراءة',
+    emoji: '🌟',
+    type: 'special',
+    importance: "The Night of Forgiveness. Allah descends to the lowest heaven and forgives those who seek forgiveness. A night of prayer and reflection.",
+    quranRef: { surah: 44, ayah: 3, text: 'Indeed, We sent it down during a blessed night. Indeed, We were to warn mankind.' },
+    dua: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي\nO Allah, You are Pardoning and You love to pardon, so pardon me.',
+    practices: ['Pray and make dua during the night', 'Fast the next day (15th Shaban)', 'Seek forgiveness from Allah'],
+  },
+  '9-1': {
+    name: 'Ramadan Begins',
+    nameAr: 'بداية رمضان',
+    emoji: '🌙',
+    type: 'ramadan',
+    importance: 'The blessed month of fasting begins. The Quran was revealed in this month. Fasting is obligatory for all able Muslims.',
+    quranRef: { surah: 2, ayah: 185, text: 'The month of Ramadan in which the Quran was revealed, a guidance for mankind and clear proofs of guidance and criterion.' },
+    dua: 'اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ وَالسَّلَامَةِ وَالْإِسْلَامِ\nO Allah, let this moon appear on us with security and faith, with peace and Islam.',
+    practices: ['Begin fasting from Fajr to Maghrib', 'Increase Quran recitation', 'Pray Tarawih at night', 'Give generously in charity'],
+  },
+  '9-27': {
+    name: 'Laylat al-Qadr',
+    nameAr: 'ليلة القدر',
+    emoji: '⭐',
+    type: 'special',
+    importance: 'The Night of Power — better than a thousand months. The night the Quran was first revealed. Worship on this night brings immense reward.',
+    quranRef: { surah: 97, ayah: 3, text: 'The Night of Power is better than a thousand months.' },
+    dua: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ كَرِيمٌ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي\nO Allah, You are the Most Forgiving, Most Generous, You love to forgive, so forgive me.',
+    practices: ['Spend the entire night in worship', 'Recite and reflect on the Quran', 'Make abundant dua', 'Give charity (Sadaqa al-Fitr)'],
+  },
+  '10-1': {
+    name: 'Eid al-Fitr',
+    nameAr: 'عيد الفطر',
+    emoji: '🎉',
+    type: 'eid',
+    importance: 'The Festival of Breaking Fast. Celebrates the completion of Ramadan. A day of gratitude, prayer, charity (Zakat al-Fitr), and joy.',
+    quranRef: { surah: 2, ayah: 185, text: '...and to glorify Allah for that to which He has guided you; perhaps you will be grateful.' },
+    dua: 'تَقَبَّلَ اللَّهُ مِنَّا وَمِنْكُمْ\nMay Allah accept from us and from you.',
+    practices: ['Pay Zakat al-Fitr before the prayer', 'Perform Eid prayer', 'Wear your best clothes', 'Visit family and friends', 'Do NOT fast on this day'],
+  },
+  '12-8': {
+    name: 'Day of Tarwiyah',
+    nameAr: 'يوم التروية',
+    emoji: '🕋',
+    type: 'hajj',
+    importance: 'The first day of Hajj rituals. Pilgrims travel to Mina. A day of spiritual preparation.',
+    quranRef: { surah: 22, ayah: 27, text: 'And proclaim to the people the Hajj; they will come to you on foot and on every lean camel, from every distant pass.' },
+    dua: 'لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ\nHere I am, O Allah, here I am.',
+  },
+  '12-9': {
+    name: 'Day of Arafah',
+    nameAr: 'يوم عرفة',
+    emoji: '⛰️',
+    type: 'fasting',
+    importance: 'The best day of the year. Fasting expiates sins of the past and coming year. Pilgrims gather at Mount Arafat — the pinnacle of Hajj.',
+    quranRef: { surah: 5, ayah: 3, text: 'This day I have perfected for you your religion and completed My favor upon you and have approved for you Islam as religion.' },
+    dua: 'لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ\nThere is no god but Allah alone with no partner, His is the dominion, His is the praise, and He is capable of all things.',
+    practices: ['Fast the Day of Arafah (non-pilgrims)', 'Make abundant dua and dhikr', 'Seek forgiveness'],
+  },
+  '12-10': {
+    name: 'Eid al-Adha',
+    nameAr: 'عيد الأضحى',
+    emoji: '🐑',
+    type: 'eid',
+    importance: "The Festival of Sacrifice. Commemorates Prophet Ibrahim's willingness to sacrifice his son. A day of prayer, sacrifice, and sharing with others.",
+    quranRef: { surah: 37, ayah: 107, text: 'And We ransomed him with a great sacrifice.' },
+    dua: 'تَقَبَّلَ اللَّهُ مِنَّا وَمِنْكُمْ\nMay Allah accept from us and from you.',
+    practices: ['Perform Eid prayer', 'Sacrifice an animal (Qurbani)', 'Share meat with family, friends, and the poor', 'Do NOT fast on Eid days (10-13 Dhul Hijjah)'],
+  },
 };
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -62,6 +163,7 @@ export default function HijriCalendarScreen({ navigation }) {
   const [noteText, setNoteText] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [reminders, setReminders] = useState({});
 
   useEffect(() => {
     loadInitialData();
@@ -78,6 +180,9 @@ export default function HijriCalendarScreen({ navigation }) {
 
       // Load saved notes
       await loadNotes();
+
+      // Load saved reminders
+      await loadReminders();
 
       // Get upcoming events
       const events = await IslamicCalendarService.getUpcomingEvents(5);
@@ -97,6 +202,86 @@ export default function HijriCalendarScreen({ navigation }) {
       }
     } catch (error) {
       console.log('Error loading notes:', error);
+    }
+  };
+
+  const loadReminders = async () => {
+    try {
+      const storedReminders = await AsyncStorage.getItem(REMINDERS_STORAGE_KEY);
+      if (storedReminders) {
+        setReminders(JSON.parse(storedReminders));
+      }
+    } catch (error) {
+      console.log('Error loading reminders:', error);
+    }
+  };
+
+  const toggleReminder = async (dateKey, eventName) => {
+    const newReminders = { ...reminders };
+    if (newReminders[dateKey]) {
+      // Remove reminder
+      delete newReminders[dateKey];
+      Alert.alert('Reminder Removed', `Reminder for ${eventName} has been removed.`);
+    } else {
+      // Add reminder
+      newReminders[dateKey] = {
+        eventName,
+        createdAt: new Date().toISOString(),
+        enabled: true,
+      };
+
+      // Try to schedule an actual notification
+      if (NotificationService.isAvailable) {
+        try {
+          await NotificationService.requestPermission();
+          // The event notifications are already handled by NotificationService
+          // This stores the user preference for this specific event
+          Alert.alert(
+            '🔔 Reminder Set',
+            `You will be reminded about ${eventName}.\n\nA notification will be sent when the time approaches.`,
+            [{ text: 'OK' }]
+          );
+        } catch (e) {
+          Alert.alert(
+            '🔔 Reminder Saved',
+            `Reminder for ${eventName} has been saved.\n\nEnable notifications in Settings for push reminders.`,
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        Alert.alert(
+          '🔔 Reminder Saved',
+          `Reminder for ${eventName} has been saved locally.\n\n⚠️ For push notifications, build the app (not available in Expo Go).`,
+          [{ text: 'OK' }]
+        );
+      }
+    }
+    try {
+      await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(newReminders));
+      setReminders(newReminders);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save reminder');
+    }
+  };
+
+  const shareEventContent = async (event) => {
+    let message = `${event.emoji} ${event.name}\n`;
+    if (event.nameAr) message += `${event.nameAr}\n`;
+    message += `\n${event.importance || ''}\n`;
+    if (event.quranRef?.text) {
+      message += `\n📖 "${event.quranRef.text}"\n— Quran ${event.quranRef.surah}:${event.quranRef.ayah}\n`;
+    }
+    if (event.dua) {
+      message += `\n🤲 Dua:\n${event.dua}\n`;
+    }
+    message += `\n🌙 Shared via Musafir App`;
+    try {
+      await Share.share({
+        message,
+        title: `${event.name} — Musafir`,
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
     }
   };
 
@@ -264,13 +449,96 @@ export default function HijriCalendarScreen({ navigation }) {
     const dateNotes = notes[dateKey] || [];
     const eventKey = `${displayMonth}-${selectedDate}`;
     const event = ISLAMIC_EVENTS[eventKey];
+    const reminderKey = `${displayYear}-${eventKey}`;
+    const hasReminder = reminders[reminderKey];
 
     return (
       <View style={styles.notesSection}>
+        {/* Pretty Event Details */}
         {event && (
-          <View style={[styles.eventBanner, { backgroundColor: getEventColor(event.type) }]}>
-            <Text style={styles.eventBannerEmoji}>{event.emoji}</Text>
-            <Text style={styles.eventBannerText}>{event.name}</Text>
+          <View style={styles.eventDetailContainer}>
+            {/* Event Banner */}
+            <View style={[styles.eventBanner, { backgroundColor: getEventColor(event.type) }]}>
+              <Text style={styles.eventBannerEmoji}>{event.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.eventBannerText}>{event.name}</Text>
+                {event.nameAr && <Text style={styles.eventBannerTextAr}>{event.nameAr}</Text>}
+              </View>
+            </View>
+
+            {/* Action Buttons: Share + Reminder */}
+            <View style={styles.eventActionsRow}>
+              <TouchableOpacity
+                style={styles.eventActionBtn}
+                onPress={() => shareEventContent(event)}
+              >
+                <Ionicons name="share-social-outline" size={18} color="#D4A84B" />
+                <Text style={styles.eventActionText}>Share</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.eventActionBtn, hasReminder && styles.eventActionBtnActive]}
+                onPress={() => toggleReminder(reminderKey, event.name)}
+              >
+                <Ionicons
+                  name={hasReminder ? 'notifications' : 'notifications-outline'}
+                  size={18}
+                  color={hasReminder ? '#FFD700' : '#D4A84B'}
+                />
+                <Text style={[styles.eventActionText, hasReminder && { color: '#FFD700' }]}>
+                  {hasReminder ? 'Reminder On' : 'Set Reminder'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Importance / Description */}
+            {event.importance && (
+              <View style={styles.eventSection}>
+                <View style={styles.eventSectionHeader}>
+                  <Ionicons name="information-circle-outline" size={18} color="#D4A84B" />
+                  <Text style={styles.eventSectionTitle}>About this Day</Text>
+                </View>
+                <Text style={styles.eventSectionBody}>{event.importance}</Text>
+              </View>
+            )}
+
+            {/* Quran Reference */}
+            {event.quranRef && (
+              <View style={styles.eventQuranCard}>
+                <View style={styles.eventSectionHeader}>
+                  <Ionicons name="book-outline" size={18} color="#D4A84B" />
+                  <Text style={styles.eventSectionTitle}>Quran Reference</Text>
+                </View>
+                <Text style={styles.eventQuranText}>"{event.quranRef.text}"</Text>
+                <Text style={styles.eventQuranRef}>— Surah {event.quranRef.surah}, Ayah {event.quranRef.ayah}</Text>
+              </View>
+            )}
+
+            {/* Dua */}
+            {event.dua && (
+              <View style={styles.eventDuaCard}>
+                <View style={styles.eventSectionHeader}>
+                  <Ionicons name="hand-left-outline" size={18} color="#81C784" />
+                  <Text style={[styles.eventSectionTitle, { color: '#81C784' }]}>Dua / Supplication</Text>
+                </View>
+                <Text style={styles.eventDuaText}>{event.dua}</Text>
+              </View>
+            )}
+
+            {/* Practices */}
+            {event.practices && event.practices.length > 0 && (
+              <View style={styles.eventSection}>
+                <View style={styles.eventSectionHeader}>
+                  <Ionicons name="checkmark-done-outline" size={18} color="#64B5F6" />
+                  <Text style={[styles.eventSectionTitle, { color: '#64B5F6' }]}>Recommended Practices</Text>
+                </View>
+                {event.practices.map((practice, idx) => (
+                  <View key={idx} style={styles.practiceRow}>
+                    <Text style={styles.practiceBullet}>•</Text>
+                    <Text style={styles.practiceText}>{practice}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         )}
 
@@ -334,7 +602,10 @@ export default function HijriCalendarScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -349,7 +620,7 @@ export default function HijriCalendarScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         {/* Month Navigation */}
         <View style={styles.monthNav}>
           <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
@@ -398,20 +669,44 @@ export default function HijriCalendarScreen({ navigation }) {
         {/* Upcoming Events */}
         <View style={styles.eventsSection}>
           <Text style={styles.eventsSectionTitle}>📅 Upcoming Events</Text>
-          {upcomingEvents.map((event, index) => (
-            <View key={index} style={styles.upcomingEventCard}>
-              <View style={[styles.eventDot, { backgroundColor: getEventColor(event.type) }]} />
-              <View style={styles.upcomingEventInfo}>
-                <Text style={styles.upcomingEventName}>{event.emoji} {event.name}</Text>
-                <Text style={styles.upcomingEventDate}>{event.hijriDate}</Text>
+          {upcomingEvents.map((event, index) => {
+            const reminderKey = `${displayYear}-${event.month}-${event.day}`;
+            const hasReminder = reminders[reminderKey];
+            return (
+              <View key={index} style={styles.upcomingEventCard}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                  <View style={[styles.eventDot, { backgroundColor: getEventColor(event.type) }]} />
+                  <View style={styles.upcomingEventInfo}>
+                    <Text style={styles.upcomingEventName}>{event.emoji} {event.name}</Text>
+                    <Text style={styles.upcomingEventDate}>{event.hijriDate}</Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TouchableOpacity
+                    style={styles.miniActionBtn}
+                    onPress={() => toggleReminder(reminderKey, event.name)}
+                  >
+                    <Ionicons
+                      name={hasReminder ? 'notifications' : 'notifications-outline'}
+                      size={16}
+                      color={hasReminder ? '#FFD700' : '#808080'}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.miniActionBtn}
+                    onPress={() => shareEventContent(event)}
+                  >
+                    <Ionicons name="share-social-outline" size={16} color="#808080" />
+                  </TouchableOpacity>
+                  <View style={styles.daysUntilBadge}>
+                    <Text style={styles.daysUntilText}>
+                      {event.daysUntil === 0 ? 'Today' : `${event.daysUntil}d`}
+                    </Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.daysUntilBadge}>
-                <Text style={styles.daysUntilText}>
-                  {event.daysUntil === 0 ? 'Today' : `${event.daysUntil}d`}
-                </Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -443,7 +738,7 @@ export default function HijriCalendarScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -686,7 +981,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#D4A84B',
   },
   modalBody: {
     padding: 20,
@@ -697,18 +992,140 @@ const styles = StyleSheet.create({
   eventBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   eventBannerEmoji: {
-    fontSize: 24,
-    marginRight: 10,
+    fontSize: 28,
+    marginRight: 12,
   },
   eventBannerText: {
-    color: '#121212',
-    fontSize: 16,
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  eventBannerTextAr: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 15,
+    marginTop: 2,
+  },
+  // Event detail container
+  eventDetailContainer: {
+    marginBottom: 20,
+  },
+  // Action row (Share + Reminder)
+  eventActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  eventActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#252525',
+    borderWidth: 1,
+    borderColor: '#333',
+    gap: 6,
+  },
+  eventActionBtnActive: {
+    borderColor: '#FFD700',
+    backgroundColor: '#2A2A1A',
+  },
+  eventActionText: {
+    color: '#D4A84B',
+    fontSize: 13,
     fontWeight: '600',
+  },
+  // Event sections
+  eventSection: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  eventSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+    gap: 8,
+  },
+  eventSectionTitle: {
+    color: '#D4A84B',
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  eventSectionBody: {
+    color: '#E0E0E0',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  // Quran card in event
+  eventQuranCard: {
+    backgroundColor: '#1A2A1A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#D4A84B',
+  },
+  eventQuranText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontStyle: 'italic',
+    lineHeight: 24,
+  },
+  eventQuranRef: {
+    color: '#808080',
+    fontSize: 12,
+    marginTop: 8,
+    textAlign: 'right',
+  },
+  // Dua card in event
+  eventDuaCard: {
+    backgroundColor: '#1A2A2A',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#81C784',
+  },
+  eventDuaText: {
+    color: '#E0E0E0',
+    fontSize: 15,
+    lineHeight: 26,
+    textAlign: 'center',
+  },
+  // Practices list
+  practiceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+    paddingLeft: 4,
+  },
+  practiceBullet: {
+    color: '#64B5F6',
+    fontSize: 16,
+    marginRight: 8,
+    lineHeight: 22,
+  },
+  practiceText: {
+    color: '#E0E0E0',
+    fontSize: 14,
+    lineHeight: 22,
+    flex: 1,
+  },
+  // Mini action buttons in upcoming events
+  miniActionBtn: {
+    padding: 8,
+    borderRadius: 16,
+    marginRight: 4,
   },
   notesSectionTitle: {
     fontSize: 14,
