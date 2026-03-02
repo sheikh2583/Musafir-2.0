@@ -1,0 +1,1434 @@
+================================================================================
+                    MUSAFIR — COMPLETE FUNCTIONALITY INVENTORY
+              Every Single Feature, Interaction, and Capability
+================================================================================
+
+Generated: March 2, 2026
+Scope: 34 Screens · 16 Service Modules · 3 Context Providers · 7 Controllers
+       6 Models · 8 Route Files · 1 AI Service · 1 ML Scoring Service
+
+================================================================================
+                        TABLE OF CONTENTS
+================================================================================
+
+  1.  AUTHENTICATION & USER MANAGEMENT
+  2.  HOME SCREEN (Dashboard)
+  3.  QURAN MODULE
+  4.  HADITH MODULE
+  5.  AI CHAT (ILM) MODULE
+  6.  PRAYER TRACKING (SALAT) MODULE
+  7.  DUA & ADHKAR MODULE
+  8.  ISLAMIC LECTURES MODULE
+  9.  ZAKAT CALCULATOR MODULE
+  10. HIJRI CALENDAR MODULE
+  11. QIBLA COMPASS MODULE
+  12. NEARBY MOSQUES MODULE
+  13. MUSAFIR (TRAVEL/QASR) MODULE
+  14. ARABIC WRITING MODULE
+  15. QURAN QUIZ MODULE
+  16. COMMUNITY & SOCIAL MODULE
+  17. SETTINGS MODULE
+  18. NOTIFICATIONS MODULE
+  19. AUDIO SYSTEM
+  20. NAVIGATION & APP STRUCTURE
+  21. BACKEND API — ALL ENDPOINTS
+  22. DATABASE MODELS & SCHEMAS
+  23. ML/AI SEARCH PIPELINE
+  24. DATA SOURCES & BUNDLED ASSETS
+  25. EXTERNAL APIs & INTEGRATIONS
+  26. OFFLINE CAPABILITIES
+  27. PERSISTENT STORAGE (AsyncStorage Keys)
+
+================================================================================
+  1. AUTHENTICATION & USER MANAGEMENT
+================================================================================
+
+  1.1   WelcomeScreen
+        - App logo (🕌) with "Welcome to Musafir" title
+        - "Your Islamic Companion" subtitle tagline
+        - "Get Started" button → navigates to Register
+        - "I already have an account" link → navigates to Login
+
+  1.2   RegisterScreen
+        - Full Name field (required)
+        - Email field (required, validated)
+        - Phone Number field (optional)
+        - Password field (required, minimum 6 characters)
+        - Client-side validation before submission
+        - Success/error alert dialogs
+        - Navigate to Login link
+        - POST /api/auth/register → creates user + returns JWT
+
+  1.3   LoginScreen
+        - Email field with validation
+        - Password field with validation
+        - Login button with error alerts
+        - Navigate to Register link
+        - POST /api/auth/login → validates credentials + returns JWT
+
+  1.4   AuthContext (State Management)
+        - JWT token persisted in AsyncStorage (key: "token")
+        - Auto-login on app launch: reads token → GET /api/auth/me → restores session
+        - login(email, password) → stores token → sets user state
+        - register(name, email, password, phoneNumber) → stores token → sets user state
+        - logout() → removes token → clears state
+        - Loading state during initial auth check
+        - User object: { _id, name, email, phoneNumber }
+        - isAuthenticated boolean exposed to entire app
+
+  1.5   ProfileScreen (Own Profile)
+        - Avatar with initials
+        - Display name and email
+        - Salat Streak card: streak days count with motivational messages
+        - Today's prayer progress bar (X/5)
+        - Settings navigation card → Settings screen
+        - Logout button
+        - Delete Account button with confirmation dialog
+        - DELETE /api/users/me/delete → deletes all messages + user account
+
+  1.6   UserProfileScreen (Other Users)
+        - View other user's avatar, name, email
+        - Befriend / Unfriend toggle button
+        - Subscription status text display
+        - Own profile detection (disables friend button for self)
+        - Pull-to-refresh
+        - POST /api/users/:id/subscribe (befriend)
+        - DELETE /api/users/:id/subscribe (unfriend)
+
+  1.7   User Search
+        - GET /api/users/search?q= → regex case-insensitive name search, limit 10
+
+  1.8   Backend User Operations
+        - GET /api/users → list all users (admin)
+        - GET /api/users/:id → get user by ID + isSubscribed check
+        - PUT /api/users/:id → update name, phone, profilePicture (owner/admin)
+        - DELETE /api/users/:id → delete user (admin)
+
+================================================================================
+  2. HOME SCREEN (Dashboard)
+================================================================================
+
+  2.1   Hijri Date Header
+        - Displays current Hijri date in Arabic + English
+        - Fetched from Aladhan API (falls back to local calculation)
+        - Tappable → navigates to HijriCalendar screen
+
+  2.2   Greeting Section
+        - "As-salamu alaykum, Welcome {userName}" using AuthContext
+
+  2.3   Today's Special Event Banner
+        - Conditionally rendered when today matches an Islamic event
+        - Dynamic background color based on event type (eid/ramadan/fasting/hajj)
+
+  2.4   Ramadan Banner (conditional, during Ramadan only)
+        - Sehri time display with location
+        - Iftar time display with location
+        - Tappable → toggles smart fasting countdown
+        - Live countdown (hh:mm:ss) to Iftar during fasting hours
+        - Live countdown to Sehri after Iftar
+        - Auto-switches between modes based on current time
+        - Digit box UI with colon separators and status text
+
+  2.5   Verse of the Day Card
+        - Displays daily Quran verse (rotated by day-of-year from 12 curated verses)
+        - Share button → Share.share() with formatted verse text
+
+  2.6   Hadith of the Day Card
+        - Displays daily hadith (rotated by day-of-year from 30 curated hadiths)
+        - Share button → Share.share() with formatted hadith text
+
+  2.7   Prayer Waqt Timer
+        - Shows current prayer name + time remaining countdown (HH:MM:SS)
+        - Animated progress bar for current prayer window
+        - Shows next prayer name + countdown when between prayers
+        - Dynamically switches between "current prayer" and "next prayer" modes
+        - 1-second interval timer for live updates
+
+  2.8   Forbidden Prayer Times Card (Hanafi)
+        - Lists 3 Haram forbidden times:
+          · Sunrise (from sunrise until sun elevation)
+          · Zawaal/Zenith (when sun is at peak)
+          · Sunset (from sun turning yellow until full set)
+        - Lists 2 Makruh Tahrimi times:
+          · After Fajr (until sunrise)
+          · After Asr (until sunset)
+        - Per-time status badges: Active (red) / Done (green) / Later (gray)
+        - Active forbidden time warning banner with red styling
+        - Hadith references for each forbidden time
+        - Remaining minutes display for active times
+
+  2.9   Salat Tracking Card
+        - 5-prayer grid: Fajr, Dhuhr, Asr, Maghrib, Isha
+        - Tap to toggle each prayer complete/uncomplete
+        - Visual states: completed (green ✓), missed (red ✗), pending (gray), upcoming (dim)
+        - Count display "X/5 recorded"
+        - Syncs with backend on each toggle
+
+  2.10  Community Leaderboard Button
+        - Shows leaderboard preview
+        - Tappable → navigates to SalatLeaderboard screen
+
+  2.11  Navigation Feature Cards (6 cards)
+        - Qibla Compass → QiblaCompass screen
+        - Nearby Mosques → NearbyMosques screen
+        - Zakat Calculator → ZakatCalculator screen
+        - Dua & Adhkar → DuaCategory screen
+        - Islamic Lectures → LectureSpeakers screen
+        - Musafir (Traveller) → MusafirStatus screen
+
+  2.12  Upcoming Islamic Events Card
+        - Displays up to 3 upcoming Islamic events
+        - Days countdown for each event
+        - Tappable → navigates to HijriCalendar screen
+
+  2.13  Share App Button
+        - Shares app promotional text via Share.share()
+
+  2.14  AI Chat FAB (Floating Action Button)
+        - Animated ILM Orb with عِلْم (Knowledge) Arabic text
+        - 3 continuous animations:
+          · orbPulse — breathing scale animation
+          · orbGlow — opacity pulsation
+          · orbRotate — continuous rotation
+        - Tappable → navigates to AIChat screen
+
+  2.15  Pull-to-Refresh
+        - Refreshes all dashboard data on pull
+
+================================================================================
+  3. QURAN MODULE
+================================================================================
+
+  3.1   QuranScreen (Surah List)
+        - Displays all 114 surahs with:
+          · Surah number
+          · English name
+          · Arabic name
+          · Revelation type (Meccan/Medinan) badge
+          · Ayah count
+        - Search bar to filter surahs by name or number
+        - Browse Surahs / Search Verses toggle
+        - "Write" action button → ArabicWriting screen
+        - "Quiz" action button → QuranQuiz screen
+        - AI-powered semantic info box explaining search capability
+        - Verse search on submit → navigates to VerseSearch screen
+
+  3.2   SurahScreen (Verse Reader)
+        - Verse list (FlatList) with:
+          · Arabic text with configurable font size (from SettingsContext)
+          · English translation (toggleable via header button)
+        - Per-verse audio playback:
+          · Play single verse button with stop
+          · Currently-playing verse highlighted with gold card border
+        - Play All mode:
+          · Sequential playback of all verses
+          · Pause/resume/stop controls in header
+          · Auto-scroll to currently playing verse
+        - Tafseer dropdown per verse:
+          · Expandable/collapsible tafseer text
+          · HTML stripping for clean display
+          · Tafseer redirect resolution (up to 5 levels deep)
+        - Show/Hide Translation toggle in header
+        - Quiz button in header → navigates to QuizMode screen
+        - Bismillah handling:
+          · Displayed as verse_0 for all surahs except Surah 1 (Al-Fatiha) and Surah 9 (At-Tawbah)
+        - AudioContext integration for global playback state
+        - Settings-driven: arabicFontSize, englishFontSize, showTranslationByDefault
+
+  3.3   VerseSearchScreen (AI Semantic Search)
+        - AI-powered verse search results display
+        - Results metadata: verse count, search duration in ms, model used
+        - Per-result verse cards:
+          · Surah name + ayah reference
+          · Relevance score badge (percentage)
+          · Arabic text
+          · English translation
+          · Collapsible tafseer section (Tafseer Tazkirul Quran)
+          · "View in Context →" button → navigates to Surah screen with highlightAyah
+        - States: Loading ("Using AI to find relevant verses"), error (retry + go back), empty
+
+  3.4   Quran Data (Offline-First)
+        - 114 surah JSON files bundled locally (quran/surah/)
+        - English translations bundled (quran/translation/en/)
+        - Indonesian translations bundled (quran/translation/id/)
+        - Arabic translations bundled (quran/translation/ar/)
+        - 114 tajweed annotation files (quran/tajweed/)
+        - Tafseer data bundled locally (data/tafseer.json)
+        - Surah metadata bundled (data/surah_metadata.json)
+        - Full Quran text + translation bundled (data/quran_data.json, data/quran_translation.json)
+        - No internet required for basic Quran reading
+
+  3.5   Backend Quran Endpoints
+        - GET /api/quran/surahs → all 114 surah metadata
+        - GET /api/quran/surah/:number → all ayahs + metadata for a surah
+        - GET /api/quran/surah/:number/metadata → metadata only
+        - GET /api/quran/surah/:number/ayah/:number → single ayah
+        - GET /api/quran/juz → all 30 juz mapped to surahs + verse ranges
+        - GET /api/quran/juz/:number → all ayahs for a juz
+        - GET /api/quran/basic-search?q=&lang= → text substring search (top 15 of 40)
+        - GET /api/quran/semantic-search?q=&limit= → BGE ONNX vector search + reranker
+        - GET /api/quran/stats → total ayahs, Makki/Madani counts
+
+================================================================================
+  4. HADITH MODULE
+================================================================================
+
+  4.1   HadithScreen (Collections Browser)
+        - 6 hadith collections displayed as color-coded cards:
+          · Sahih Bukhari (green #2E7D32)
+          · Sahih Muslim (blue #1565C0)
+          · Sunan Abu Dawud (purple #6A1B9A)
+          · Jami at-Tirmidhi (red #C62828)
+          · Sunan an-Nasai (orange #EF6C00)
+          · Sunan Ibn Majah (teal #00695C)
+        - Each card: English name, Arabic name, compiler, hadith count, arrow
+        - Browse Collections / Search Hadiths toggle
+        - AI-powered semantic search across all collections (text input)
+        - Tap collection → HadithCollection screen
+        - Search submit → HadithSearchResults screen
+
+  4.2   HadithCollectionScreen (Book Viewer)
+        - Paginated hadith list: 20 per page, infinite scroll (load more)
+        - Each hadith card:
+          · Arabic text with configurable font size
+          · English translation with configurable font size
+          · Narrator chain display
+          · Grade badge (Sahih, Hasan, Da'if, etc.)
+          · Reference display
+        - Collection header: Arabic name, page info
+        - Load more / Retry functionality
+
+  4.3   HadithSearchResultsScreen (AI Search)
+        - AI search results with:
+          · Collection color dots
+          · Relevance percentage scores
+          · Arabic text + English translation
+          · Narrator info + chapter info
+        - Search metadata: result count, duration, model used
+        - Back button, retry, go back options
+
+  4.4   Backend Hadith Endpoints
+        - GET /api/hadith/collections → all 6 collection metadata
+        - GET /api/hadith/:collection → paginated hadiths (page, limit, bookNumber filter)
+        - GET /api/hadith/:collection/chapters → chapter list with Arabic/English titles
+        - GET /api/hadith/:collection/chapter/:number → all hadiths in a chapter
+        - GET /api/hadith/:collection/hadith/:id → single hadith by ID
+        - GET /api/hadith/:collection/:number → hadith by number (id or idInBook)
+        - GET /api/hadith/:collection/books → book structure with hadith counts per chapter
+        - GET /api/hadith/:collection/search?q=&lang= → text search (top 15 of 40)
+        - GET /api/hadith/stats → per-collection counts, total hadiths + chapters
+        - GET /api/hadith/stats/all → same as above (alias)
+
+================================================================================
+  5. AI CHAT (ILM) MODULE
+================================================================================
+
+  5.1   AIChatScreen
+        - Full chat interface with message history (user + AI bubbles)
+        - Message timestamps on each bubble
+        - User bubbles right-aligned, AI bubbles left-aligned with orb avatar
+        - 4 suggested question chips (tap to send):
+          · "What are the five pillars of Islam?"
+          · "Tell me about Surah Al-Fatiha"
+          · "How do I perform Wudu?"
+          · "What is the importance of Zakat?"
+        - Message sending:
+          · POST to /api/chat with full conversation history
+          · 120-second timeout
+          · 500 character max per message
+          · Multiline input support
+          · Send button disabled when empty or thinking
+        - Source citations: up to 3 source references per AI response
+        - Clear/Reset conversation button in header
+        - Online/Thinking status indicator badge
+        - 503 service unavailable handling
+        - Network error messages
+
+  5.2   AIOrb Component (Animated)
+        - عِلْم (Knowledge) Arabic text in orb center
+        - 3 simultaneous animations:
+          · Rotation — continuous 360° spin
+          · Pulse — breathing scale in/out
+          · Glow — opacity oscillation
+        - Fast pulse mode when AI is thinking
+        - Calm breathing mode when idle
+        - Used in: AIChatScreen header, HomeScreen FAB, thinking indicator
+
+  5.3   AI Backend Service (Flask + LangChain)
+        - Flask server on port 5001
+        - LangChain RAG pipeline:
+          · Query → nomic-embed-text embeddings → ChromaDB vector retrieval
+          · Top results + query → Ollama llama3.2 generation
+          · Sourced response with citations
+        - Health check endpoint: GET /health
+        - Chat endpoint: POST /chat
+        - Backend proxy: /api/chat → forwarded to Flask service
+
+  5.4   AI Knowledge Base (7 texts ingested into ChromaDB)
+        - Abridged Explanation of the Quran (JSON)
+        - Tafsir Ma'arif-ul-Quran (English JSON)
+        - Tazkirul Quran (English text)
+        - Bahishti Zewar (text)
+        - Ihya Ulum-ud-Din Vol 1 (English text)
+        - Sahih Bukhari (JSON)
+        - Tafseer.txt (additional commentary)
+
+  5.5   AI Data Ingestion Tools
+        - prepare_tafseer.py: converts JSON → text format
+        - ingest.py: builds ChromaDB vector store from all texts
+
+================================================================================
+  6. PRAYER TRACKING (SALAT) MODULE
+================================================================================
+
+  6.1   Prayer Tracking (Home Screen)
+        - 5 daily prayers: Fajr, Dhuhr, Asr, Maghrib, Isha
+        - Each with Arabic name:
+          · Fajr (الفجر), Dhuhr (الظهر), Asr (العصر), Maghrib (المغرب), Isha (العشاء)
+        - Toggle complete/uncomplete per prayer
+        - Visual states: completed, missed, pending, upcoming
+        - Persisted locally in AsyncStorage (@salat_tracking)
+        - Synced to backend: POST /api/salat/pray, POST /api/salat/skip
+
+  6.2   Streak System
+        - Consecutive-day streak tracking (up to 365 days)
+        - Streak counted by iterating backwards day-by-day
+        - All 5 prayers must be completed for streak day to count
+        - Persisted in AsyncStorage (@salat_streak)
+
+  6.3   Scoring Algorithm
+        - Base: each prayer = 1 point
+        - Consecutive multiplier:
+          · Prayers in order: Fajr → Dhuhr → Asr → Maghrib → Isha
+          · Each consecutive prayer multiplies: points × currentMultiplier, then multiplier++
+          · Example: Fajr=1, Dhuhr=2, Asr=6, Maghrib=24, Isha=120 (factorial-like growth)
+          · Isha → next-day Fajr counts as consecutive (overnight bridge)
+        - Skipping a prayer resets multiplier to 1
+        - Weekly reset: at 35 prayers (5×7 days), best score saved, counter resets
+        - Best weekly score persisted for all-time leaderboard
+
+  6.4   SalatLeaderboardScreen
+        - Weekly / All-Time tab toggle
+        - My Stats card:
+          · Current rank
+          · Weekly score
+          · Streak multiplier
+          · Prayers until weekly reset
+        - Leaderboard list:
+          · Rank icons: 🏆 (1st), 🥈 (2nd), 🥉 (3rd)
+          · Avatar, name ("You" indicator for self)
+          · Prayer count, streak multiplier, score
+          · Gold/silver/bronze styling for top 3
+          · Current user highlighted
+        - Friends-only filtering (shows self + befriended users only)
+        - "ما شاء الله" header with scale animation
+        - Total participants count
+        - Scoring Info button → ScoringInfo screen
+        - Pull-to-refresh
+        - Clears stale data before each fetch
+
+  6.5   ScoringInfoScreen
+        - Intro card: 🏆 "Salat Leaderboard Scoring"
+        - Base points explanation
+        - Streak multiplier detailed explanation with example table
+        - Breaking the streak explanation
+        - Weekly reset explanation (35 prayers)
+        - Leaderboard types: Weekly vs All-Time
+        - 4 numbered tips for high scores
+
+  6.6   Forbidden Prayer Times (Hanafi Fiqh)
+        - 3 Haram (absolutely forbidden) times:
+          · Sunrise — from sunrise until sun elevation (~20 min)
+          · Zawaal/Zenith — when sun is at its peak (~5 min)
+          · Sunset — from sun turning yellow until fully set
+        - 2 Makruh Tahrimi (severely disliked) times:
+          · After Fajr — from Fajr prayer until sunrise
+          · After Asr — from Asr prayer until sunset
+        - Each has: icon, severity badge, description, hadith reference
+        - Active time detection with remaining minutes
+        - Next upcoming time with startsIn countdown
+
+  6.7   Backend Salat Endpoints
+        - POST /api/salat/pray → record prayer + scoring
+        - POST /api/salat/skip → record skip + reset multiplier
+        - GET /api/salat/score → user score + rank
+        - GET /api/salat/leaderboard?type=weekly|alltime&limit= → friends-only leaderboard
+
+================================================================================
+  7. DUA & ADHKAR MODULE
+================================================================================
+
+  7.1   DuaCategoryScreen
+        - 4 main dua categories displayed as cards:
+          · Each card: icon, name (English + Arabic), description
+          · Subcategory count, total duas count per category
+        - Search bar: live search across all duas by tags/references/keywords
+        - Search results navigate to DuaDetail with highlight
+        - Favorites quick access card with count badge
+        - Favorites header button with badge icon
+        - AI Chatbot hint card → navigates to AIChat
+
+  7.2   DuaSubCategoryScreen
+        - Subcategory list under selected category
+        - Numbered cards with: icon, name (EN + AR), description, dua count badge
+        - Info banner with section count
+        - Tappable → DuaDetail screen
+
+  7.3   DuaDetailScreen
+        - Paginated dua cards (5 per page, load more button)
+        - Each dua card displays:
+          · Arabic text (large font)
+          · Transliteration (toggleable on/off via header)
+          · English translation
+          · Reference source
+          · Virtue/reward description
+        - Tap-to-Count Tasbeeh Counter:
+          · Haptic feedback on each tap (expo-haptics with Vibration fallback)
+          · Progress bar showing count vs recommended repeats
+          · Milestone haptic on completion of target count
+          · Reset counter button
+        - Favorite/Bookmark toggle per dua (heart icon)
+        - Share Dua: Arabic + transliteration + translation + reference
+        - Audio play button (stub for future implementation)
+        - Transliteration ON/OFF toggle in header
+
+  7.4   DuaFavoritesScreen
+        - All bookmarked duas from all categories
+        - Same dua card layout as DuaDetailScreen
+        - Remove favorite (heart-dislike icon)
+        - Share Dua functionality
+        - Tasbeeh counter with haptic feedback
+        - Transliteration toggle in header
+        - Empty state with "Browse Duas" button
+
+  7.5   Dua Data (Offline)
+        - 72+ duas across 11 categories
+        - Data bundled in data/duas.json (lazy-loaded, cached in memory)
+        - Full-text search across: title, translation, reference, transliteration, tags, virtue
+        - Minimum 2 character search query
+        - Favorites persisted in AsyncStorage (@dua_favorites)
+        - Counters persisted in AsyncStorage (@dua_counters)
+
+================================================================================
+  8. ISLAMIC LECTURES MODULE
+================================================================================
+
+  8.1   LectureSpeakersScreen
+        - Speaker grid sorted by lecture count
+        - Each speaker card: colored avatar, name, lecture count, topic count, category chips
+        - Search bar: multi-word search across lectures/speakers/topics
+        - Search results with play button → LecturePlayer
+        - Recently Played shortcut (if any recent lectures)
+        - Favorites button in header with badge count
+        - Metadata display: total lectures, total speakers, scraped date
+        - Tap speaker → LectureList screen
+
+  8.2   LectureListScreen
+        - Lectures for a speaker (or Favorites/Recently Played special views)
+        - Category filter chips (horizontal scroll)
+        - Pagination: 20 per page, infinite scroll
+        - Favorite toggle per lecture (heart icon)
+        - Lecture cards: play badge, title, category/speaker, duration
+        - Speaker bio card
+        - Tap lecture → LecturePlayer screen
+
+  8.3   LecturePlayerScreen
+        - Full-screen audio player using expo-av Audio.Sound
+        - Stream from remote MP3 URL (Internet Archive)
+        - Background audio mode (staysActiveInBackground: true)
+        - Controls:
+          · Play/Pause button (large gold circle)
+          · Rewind 15 seconds
+          · Forward 15 seconds
+          · Speed control: cycles through [0.75x, 1x, 1.25x, 1.5x, 2x]
+          · Favorite toggle (heart icon, red when favorited)
+        - Progress bar:
+          · Tappable seek (press anywhere to jump)
+          · Fill indicator with draggable thumb
+          · Current time / total duration display
+        - Share Lecture: title, speaker, category, MP3 URL
+        - Visual: album art circle (🎙️ emoji, gold glow border when playing)
+        - Lecture title, speaker name, category badge, source text
+        - Buffering/loading indicator
+        - Pauses on navigate away, unloads on unmount
+        - Error states: "Lecture not found", audio load failure banner
+
+  8.4   Lecture Data (Offline)
+        - 900+ lectures from 9 speakers
+        - Sourced from Internet Archive
+        - Data bundled in data/lectures.json (cached in memory)
+        - Favorites: AsyncStorage (@lecture_favorites)
+        - Recently played: AsyncStorage (@lecture_recent), max 20 entries
+        - Zero runtime API calls for browsing
+
+  8.5   Floating Mini Player
+        - FloatingMiniPlayer component overlaid on all tab screens
+        - Shows currently playing lecture info
+        - Play/pause control
+        - Persists across tab navigation
+
+================================================================================
+  9. ZAKAT CALCULATOR MODULE
+================================================================================
+
+  9.1   ZakatScreen
+        - Bismillah banner: Arabic text + Quran 9:103 verse reference
+        - Live metal prices (BDT):
+          · Gold (24K) per gram
+          · Silver per gram
+          · Source + last updated timestamp
+          · 3-tier fetch strategy: GoldAPI → Exchange+Metals.dev → Hardcoded fallback
+          · Fallback banner if all APIs unavailable
+        - Nisab threshold card (Hanafi):
+          · Gold Nisab: 87.48g (7.5 tola) with BDT value
+          · Silver Nisab: 612.36g (52.5 tola) with BDT value
+          · Active nisab indicator (uses lower/silver per Hanafi fiqh)
+          · Fiqh note explaining Hanafi ruling
+        - Wealth input section (7 fields):
+          · Cash & Bank Savings 💰
+          · Gold Value 🥇
+          · Silver Value 🥈
+          · Investments & Shares 📈
+          · Business Assets & Stock 🏪
+          · Other Assets 📦
+          · Outstanding Debts 📋 (subtracted from total)
+          · All with BDT (৳) prefix, numeric keyboard
+        - Calculate Zakat button
+        - Result card (animated spring + scale):
+          · Eligible ✅ or Not Applicable ❌ status
+          · Breakdown: Total Assets, Debts, Net Wealth, Nisab Threshold
+          · Zakat Due amount (2.5%) in large gold text
+          · Contextual message
+        - Donate Your Zakat — Foundation section:
+          · Category filter chips: All, Education, Healthcare, Relief, etc.
+          · 16 Bangladeshi zakat-eligible foundation cards
+          · Each card: icon, name (EN + BN), description, "QUICK PAY" badge
+          · Tap → opens external URL via Linking.openURL()
+        - Reset All button
+        - Footer: Hanafi disclaimer + metal price source note
+        - Pull-to-refresh, KeyboardAvoidingView
+
+  9.2   Zakat Calculations
+        - Gold Nisab = goldPerGram × 87.48g
+        - Silver Nisab = silverPerGram × 612.36g
+        - Nisab = lower of gold/silver (Hanafi — benefits the poor)
+        - Net Wealth = Total Assets − Outstanding Debts
+        - Zakat Due = Net Wealth × 2.5% (if Net Wealth ≥ Nisab)
+        - Troy ounce → gram conversion: ÷ 31.1035
+        - BDT formatting: Bangladeshi lakh comma system with ৳ symbol
+
+================================================================================
+  10. HIJRI CALENDAR MODULE
+================================================================================
+
+  10.1  HijriCalendarScreen (1213 lines)
+        - Full Hijri calendar grid:
+          · 12 Hijri months with Arabic + English names
+          · Day cells with tap interaction → date detail modal
+          · Today highlighted with gold border
+          · Islamic event days: colored border + emoji indicator
+          · Note indicator icon on dates with saved notes
+          · Weekday headers (Sun–Sat), Friday highlighted gold
+        - Month navigation: Previous/Next arrows + "Go to Today" button
+        - Current Hijri date display card: Arabic + English formatted
+
+  10.2  11 Islamic Events (Full Content)
+        - Islamic New Year (1 Muharram)
+        - Ashura (10 Muharram)
+        - Mawlid an-Nabi (12 Rabi al-Awwal)
+        - Isra' & Mi'raj (27 Rajab)
+        - Laylat al-Bara'ah (15 Sha'ban)
+        - Ramadan Begins (1 Ramadan)
+        - Laylat al-Qadr (27 Ramadan)
+        - Eid al-Fitr (1 Shawwal)
+        - Day of Tarwiyah (8 Dhul Hijjah)
+        - Day of Arafah (9 Dhul Hijjah)
+        - Eid al-Adha (10 Dhul Hijjah)
+        - Each event includes: name (EN+AR), emoji, type, importance description,
+          Quran reference, dua, recommended practices
+
+  10.3  Date Detail Modal (slide-up)
+        - If event exists: full event detail with:
+          · Banner with event name and emoji
+          · Importance description
+          · Quran reference
+          · Dua text
+          · Recommended practices
+        - Share event button (builds rich message with emoji, Arabic, Quran ref, dua)
+        - Set/Remove reminder button (stores in AsyncStorage, attempts push notification)
+        - Notes section:
+          · View existing notes for the date
+          · Delete notes with confirmation dialog
+          · Add new note: title + text fields
+
+  10.4  Upcoming Events Section
+        - Up to 5 upcoming events with days countdown
+        - Per-event: reminder toggle, share button, "Today" or "Xd" badge
+
+  10.5  Calendar Data Persistence
+        - Notes: AsyncStorage (@hijri_calendar_notes)
+        - Reminders: AsyncStorage (@hijri_calendar_reminders)
+
+  10.6  Hijri Date Calculations
+        - Online: Aladhan API (GET https://api.aladhan.com/v1/gpiToH)
+        - Offline fallback: Julian Day Number → Tabular Islamic Calendar conversion
+        - Days between Hijri dates: 30-day month approximation, 354-day year wrap
+
+================================================================================
+  11. QIBLA COMPASS MODULE
+================================================================================
+
+  11.1  QiblaCompassScreen
+        - Real-time Qibla compass using device magnetometer
+        - GPS location via expo-location
+        - SVG compass face (react-native-svg) with:
+          · Radial gradient background
+          · Gold outer ring
+          · 72 tick marks (cardinal, medium, fine)
+          · Cardinal labels: N (red), E, S, W
+          · Ordinal degree numbers
+          · 🕋 Kaaba marker at calculated Qibla bearing
+          · Center cap (gold/dark gradient)
+        - Compass behavior:
+          · Dial rotates by negative heading (North always points to true North)
+          · Low-pass smoothing filter (alpha=0.2) for stable readings
+          · Animated rotation with Easing.out(sin) for smooth transitions
+          · Fixed red triangle indicator at top of compass
+          · 60fps magnetometer sampling rate
+        - Alignment detection:
+          · Heading within ±5° of Qibla → isAligned = true
+          · Green banner: "Facing Qibla — الله أكبر" with pulse animation
+          · Otherwise: "Rotate X° to face Qibla 🕋" gold banner
+        - Stats row:
+          · Current heading (degrees + cardinal direction)
+          · Qibla bearing (degrees + cardinal direction)
+          · Distance to Mecca (km via Haversine)
+        - GPS coordinates display
+        - States: requesting permissions, locating, error (with retry), ready
+        - Fade-in animation on mount, pulse loop when aligned
+        - No internet required — pure on-device calculation
+
+================================================================================
+  12. NEARBY MOSQUES MODULE
+================================================================================
+
+  12.1  NearbyMosquesScreen
+        - Radius selector: 5 chips — 1km, 2km, 5km, 10km, 25km
+        - GPS location: permission request, current position, reverse geocode for display
+        - Mosque list (FlatList):
+          · Rank badge (numbered)
+          · Mosque name (English + Arabic if available)
+          · Distance badge + direction badge (N/NE/E/SE/S/SW/W/NW)
+          · Denomination tag (if available)
+          · Address display
+          · Opening hours (if available)
+        - Per-mosque action buttons:
+          · Directions → opens native maps app (iOS Maps / Android Geo intent, Google Maps fallback)
+          · View Map → opens OpenStreetMap in browser
+          · Call → tel: link (if phone number available)
+          · Web → opens website (if available)
+        - Location subtitle: reverse-geocoded neighborhood/city name
+        - Pull-to-refresh, empty state, error state with retry
+        - Uses OpenStreetMap Overpass API (free, no API key)
+        - Overpass query: amenity=place_of_worship + religion=muslim OR building=mosque
+        - Distance calculated with Haversine formula (Earth radius 6371 km)
+        - Bearing calculation for compass direction
+
+================================================================================
+  13. MUSAFIR (TRAVEL/QASR) MODULE
+================================================================================
+
+  13.1  MusafirScreen (1115 lines)
+        - GPS-based current location detection (city/country + coordinates)
+        - Home location management:
+          · "Set Current Location as Home" button
+          · "Reset Home Location" with confirmation dialog
+          · Persisted in AsyncStorage (@musafir_home_location)
+
+  13.2  Distance Calculation
+        - Haversine distance from home in km + miles
+        - Green badge: "Exceeds 48 mi (77 km) minimum"
+        - Gray badge: "Below minimum"
+
+  13.3  Stay Duration Input
+        - Enter planned stay in days
+        - Badge: "Less than 15 days — Musafir status applies"
+        - Badge: "15+ days — considered muqeem (resident)"
+        - Update/clear duration buttons
+
+  13.4  Musafir Status Determination
+        - Green banner: "You are a Musafir (مسافر)" — eligible for shortened prayers
+        - Orange banner: "You are Muqeem (مقيم)" — must pray full
+        - Rules (Hanafi): distance ≥ 77.25 km AND stay < 15 days
+
+  13.5  Qasr Prayer Table (when Musafir)
+        - 5 prayers listed with name (EN + AR):
+          · Fajr: 2 rakats (unchanged)
+          · Dhuhr: 4 → 2 rakats (shortened, shown with strikethrough on 4)
+          · Asr: 4 → 2 rakats (shortened)
+          · Maghrib: 3 rakats (unchanged)
+          · Isha: 4 → 2 rakats (shortened)
+        - Sunnah ruling box: title, ruling text, reference (Al-Hidayah)
+
+  13.6  GPS-Based Prayer Times
+        - 6 times calculated from solar position:
+          · Fajr — sun 18° below horizon (before noon, MWL method)
+          · Sunrise — sun 0.833° below horizon (before noon)
+          · Dhuhr — solar noon + 1 minute
+          · Asr — shadow = object + 2× object height (Hanafi shadow ratio = 2)
+          · Maghrib — sun 0.833° below horizon (after noon)
+          · Isha — sun 17° below horizon (after noon)
+        - Color-coded icons, monospace time display
+        - Location display, Qasr note if applicable
+        - Solar position algorithm:
+          · Gregorian → Julian Day Number
+          · Sun declination + equation of time calculation
+          · Solar noon from longitude + timezone
+          · Sun angle time for specific degrees below horizon
+
+  13.7  Ramadan Banner (conditional)
+        - Sehri Ends time (= Fajr time)
+        - Iftar Time (= Maghrib time)
+        - Location display + note
+
+  13.8  Fiqh Reference Section
+        - 4 bullet points explaining Hanafi musafir rules
+        - Source citations: Al-Hidayah, Radd al-Muhtar (Ibn Abidin)
+
+  13.9  MusafirService Constants
+        - Travel threshold: 77.25 km / 48 miles
+        - Max stay: 15 days
+        - Fajr angle: 18° (MWL)
+        - Isha angle: 17°
+        - Asr shadow ratio: 2 (Hanafi)
+
+================================================================================
+  14. ARABIC WRITING MODULE
+================================================================================
+
+  14.1  ArabicWritingScreen
+        - Random Quran word practice:
+          · Arabic text (large display)
+          · English meaning
+          · Transliteration
+          · "Next" button loads random new word from quranWords.json
+        - Whiteboard canvas:
+          · PanResponder gesture drawing
+          · SVG paths for pen strokes
+          · Pen tool: white color, 4px width
+          · Eraser tool: background color, 20px width
+          · Tool selector: Pen / Eraser / Clear
+          · Placeholder text: "Trace the word or practice writing here..."
+        - AI scoring:
+          · "Check" button captures canvas via react-native-view-shot
+          · Captures user drawing + hidden reference word render
+          · Both converted to base64 images
+          · Sent to Gemini Vision API for evaluation
+          · Loading indicator during analysis
+        - Result modal:
+          · Score out of 100 (green if >70, orange otherwise)
+          · Written feedback text
+          · "Keep Practicing" dismiss button
+        - Clear canvas button (trash icon)
+
+  14.2  AIScoringService
+        - Sends base64 image + Arabic word to Google Gemini Flash API
+        - Detailed prompt engineering for handwriting evaluation criteria
+        - Response: { score: 0-100, feedback: string }
+        - In-memory result cache (Map) keyed by word + image hash
+        - 429 rate limit handling
+
+  14.3  LetterRepository
+        - Centerline stroke paths for 32+ Arabic characters:
+          ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ء أ إ آ ه لا م ن و ي ك
+        - Up to 4 positional forms per letter: isolated, initial, medial, final
+        - Each form: stroke coordinate arrays on 100×100 grid + width
+        - isWordSupported(word) — checks if all chars have stroke data
+
+  14.4  ML Scoring Service (Backend — services/ml-scoring/)
+        - FastAPI-based Arabic handwriting scorer
+        - AraCLIP model (Arabic-Clip/araclip) for scoring
+        - Fallback to OpenAI CLIP model
+        - (Currently replaced by Gemini Vision API on frontend)
+
+================================================================================
+  15. QURAN QUIZ MODULE
+================================================================================
+
+  15.1  QuranQuizScreen (Global Vocabulary Quiz)
+        - Flash quiz format:
+          · "What is the meaning of:" label
+          · Large Arabic word display
+          · Transliteration below
+        - 4 multiple choice options:
+          · Correct answer turns green ✓
+          · Wrong answer turns red ✗ + correct highlighted green
+          · Disabled after selection
+        - Streak counter: 🔥 flame icon + count (resets on wrong)
+        - Auto-advance: correct = 1.5s delay, wrong = 2.5s delay
+        - Feedback: "Correct! MashaAllah" or "Incorrect"
+        - Stats tracking via QuizStatsService.updateWordStat()
+        - Questions generated by QuizGenerator utility
+
+  15.2  QuizModeScreen (Quiz Mode Selector)
+        - Surah info header: Arabic name, English name, ayah count
+        - Two mode cards:
+          · Full Surah Quiz — "Quiz yourself on the entire surah"
+          · Specific Ayah Range — "Choose a beginning and ending ayah"
+
+  15.3  AyahRangeScreen (Range Selector)
+        - Surah info header: Arabic name, English name, "Total: X Ayahs"
+        - Range input: "From Ayah" + "To Ayah" number fields
+        - Arrow divider between inputs
+        - Quick select presets:
+          · "First 10" (always available)
+          · "First 20" (if >20 ayahs)
+          · "Last 10" (if >10 ayahs)
+          · "Middle 10" (if >20 ayahs)
+        - Range preview: "Quiz from Ayah X to Y (Z ayahs)"
+        - Validation: start ≥ 1, end ≤ total, start ≤ end
+        - Alerts for invalid ranges
+        - Start button disabled until valid
+
+  15.4  SurahQuizScreen (Surah-Specific Quiz)
+        - Two quiz modes:
+          · Vocabulary: "What is the meaning of:" + Arabic word + transliteration + 4 options
+          · Tafsir: tafsir question text + ayah reference + 4 options
+        - Vocabulary / Tafsir toggle (can switch mid-quiz, resets)
+        - Fetches quiz data: GET /api/quiz/surah/{surahNumber}
+        - Ayah range filtering (if ayahStart/ayahEnd provided)
+        - Progress indicator: "X / 10" (max 10 questions)
+        - Score tracker
+        - Option selection: color highlighting → manual "Next Question" button
+        - Final screen: score, percentage, icon (🏆/⭐/👍/💪), "Try Again" + "Back to Surah"
+        - Surah info header: Arabic name, English name, optional ayah range
+
+  15.5  Quiz Data
+        - 114 per-surah quiz files (quiz_1.json through quiz_114.json)
+        - dictionary.json — vocabulary dictionary
+        - _tafsir_quizzes.json — tafsir questions
+        - _tafsir_summary.json — tafsir quiz metadata
+        - _summary.json — overall quiz summary
+        - _pending_translations.json — incomplete translations
+        - Total: 119 quiz files
+
+  15.6  QuizStatsService
+        - Per-word tracking: correct count, wrong count, last seen timestamp
+        - Persisted in AsyncStorage (@quran_quiz_stats)
+        - init() loads stats on first use
+        - updateWordStat(wordId, isCorrect) — increments + saves
+        - resetStats() — clears all quiz history
+
+  15.7  Backend Quiz Endpoints
+        - GET /api/quiz/surah/:number → full quiz (vocab + tafsir), transformed + stats
+        - GET /api/quiz/surah/:number/words?limit=&difficulty= → vocab only
+        - GET /api/quiz/surah/:number/tafsir?limit=&questionType= → tafsir only
+        - GET /api/quiz/stats → all 114 surahs' vocab + tafsir question counts
+        - GET /api/quiz/random?surahNumber=&count=&type= → random mixed questions
+        - POST /api/quiz/clear-cache → reset server quiz cache
+
+================================================================================
+  16. COMMUNITY & SOCIAL MODULE
+================================================================================
+
+  16.1  CommunityScreen (702 lines)
+        - Global / Friends tab toggle:
+          · Global: messages from all users
+          · Friends: messages from self + subscribed users only
+        - Post messages:
+          · Text input (500 character max)
+          · Send button
+        - Delete own messages with confirmation dialog
+        - User search bar:
+          · Search by name, dropdown results
+          · Triggers on Enter key (onSubmitEditing) — keyboard stays open
+          · Each result tappable → UserProfile screen
+        - Mini leaderboard card:
+          · Top 3 users (🥇🥈🥉)
+          · Your current rank
+          · Tappable → SalatLeaderboard screen
+        - Message cards:
+          · Avatar (first letter of name)
+          · Username (tappable → UserProfile)
+          · "time ago" display
+          · Message content
+        - Pull-to-refresh
+        - Fade-in animation on load
+        - Search bar positioned above FlatList (fixed, not scrollable)
+
+  16.2  Befriend System
+        - "Befriend" button on UserProfile (not "follow" — intentional Islamic community language)
+        - Befriend/Unfriend toggle
+        - Subscriptions stored as ObjectId references on User model
+        - Friends filter: messages, leaderboard both filtered by subscriptions
+
+  16.3  Backend Community Endpoints
+        - POST /api/messages → create message (authenticated)
+        - GET /api/messages → messages from self + subscribed users, newest first, limit 100
+        - DELETE /api/messages/:id → delete own message only
+
+================================================================================
+  17. SETTINGS MODULE
+================================================================================
+
+  17.1  SettingsScreen
+        - Font Sizes Section (4 controls):
+          · Quran Arabic: +/- buttons, visual progress bar, live preview text
+          · Quran English: +/- buttons, visual progress bar, live preview text
+          · Hadith Arabic: +/- buttons, visual progress bar, live preview text
+          · Hadith English: +/- buttons, visual progress bar, live preview text
+        - Notifications Section:
+          · Azan Time Notifications toggle
+          · Play Azan Sound toggle
+          · Test Azan Sound button
+          · Islamic Event Alerts toggle
+          · Scheduled notifications count display
+          · Permission request flow
+        - Reading Preferences:
+          · Show Translation by Default toggle
+          · Auto-expand Tafseer toggle
+          · Auto-scroll During Playback toggle
+        - Reset All Settings button with confirmation dialog
+
+  17.2  Settings Defaults
+        - arabicFontSize: 28
+        - englishFontSize: 16
+        - hadithArabicFontSize: 22
+        - hadithEnglishFontSize: 15
+        - showTranslationByDefault: true
+        - showTafseerByDefault: false
+        - audioAutoScroll: true
+        - azanNotifications: false
+        - azanSound: false
+        - eventNotifications: false
+
+  17.3  Settings Persistence
+        - All settings persisted in AsyncStorage (@app_settings)
+        - Merged with defaults on load (graceful upgrade)
+        - SettingsContext provides { settings, updateSetting, resetSettings, loaded }
+
+================================================================================
+  18. NOTIFICATIONS MODULE
+================================================================================
+
+  18.1  NotificationService
+        - Dynamic expo-notifications loading (graceful Expo Go degradation)
+        - Permission request flow
+        - Android notification channels:
+          · azan-alerts — Prayer time notifications
+          · event-alerts — Islamic event notifications
+          · forbidden-time-alerts — Forbidden prayer time warnings
+
+  18.2  Azan Notifications
+        - Schedules daily notifications for all 5 prayers
+        - 10-minute pre-prayer reminder for each prayer (10 total notifications)
+        - Prayer-specific emoji: 🌙 Fajr, ☀️ Dhuhr, 🌤 Asr, 🌅 Maghrib, 🌃 Isha
+        - Azan audio playback on notification received (expo-av)
+        - Azan audio URL: https://cdn.aladhan.com/audio/adhaan/1.mp3 (Mishary Rashid Alafasy)
+
+  18.3  Forbidden Time Notifications
+        - Schedules start/end warnings for 3 haram times (6 notifications total)
+        - Warning when entering forbidden prayer window
+        - All-clear when forbidden time ends
+
+  18.4  Event Notifications
+        - Schedules for events within 60 days
+        - Day-before reminders for major Islamic events
+        - 10 major events tracked for notifications
+
+  18.5  Notification Management
+        - Cancel individual types (azan/events/forbidden)
+        - Cancel all notifications at once
+        - Get scheduled count
+        - Foreground notification display configured
+        - Received listener (for azan audio trigger)
+        - Response listener (for notification tap handling)
+
+================================================================================
+  19. AUDIO SYSTEM
+================================================================================
+
+  19.1  AudioContext (Global Audio State)
+        - Currently playing audio key tracking
+        - Playback status: idle / playing / paused
+        - Playback mode: single / playall
+        - Current surah info + ayah number
+        - Actions:
+          · loadSurahAudio(surahNumber, surahName, verses) — prepare verse list
+          · playSingle(audioKey) — play/toggle single verse
+          · playAll() — sequential playback from first verse
+          · togglePause() — pause/resume
+          · hardStop() — stop + reset all
+          · skipNext() — next verse in playall mode
+
+  19.2  Audio Key Format
+        - 6-digit zero-padded: surah(3) + ayah(3)
+        - Example: "001005" = Surah 1, Ayah 5
+        - Audio URL: ${AUDIO_BASE_URL}${key}.mp3
+
+  19.3  Audio Features
+        - Per-verse Quran recitation streaming
+        - Sequential playall mode with auto-advance
+        - Background audio support (staysActiveInBackground)
+        - Lecture streaming with speed control (0.75x–2x)
+        - Azan audio playback for notifications
+        - Sound cleanup on unmount
+        - Floating mini player across all screens
+
+================================================================================
+  20. NAVIGATION & APP STRUCTURE
+================================================================================
+
+  20.1  App Entry (App.js)
+        - 4 nested providers: AuthProvider → SettingsProvider → NotificationBootstrap → AudioProvider
+        - NotificationBootstrap: initializes NotificationService with azan settings
+        - Top-level: <AppNavigator />
+
+  20.2  Authentication Flow
+        - Not authenticated → AuthStack: Welcome → Login → Register
+        - Authenticated → MainTabs (5 bottom tabs)
+
+  20.3  Bottom Tab Navigation (5 Tabs)
+        - Active tab color: #D4A84B (gold)
+        - Inactive tab color: #808080
+        - Tab bar background: #1E1E1E
+
+  20.4  Home Tab (16 screens)
+        HomeScreen (HomeFeed) → UserProfile, SalatLeaderboard, HijriCalendar,
+        AIChat, QiblaCompass, NearbyMosques, ZakatCalculator, DuaCategory,
+        DuaSubCategory, DuaDetail, DuaFavorites, LectureSpeakers, LectureList,
+        LecturePlayer, MusafirStatus
+
+  20.5  Quran Tab (8 screens)
+        QuranScreen (QuranList) → Surah, SurahQuiz, QuizMode, AyahRangeSelect,
+        VerseSearch, ArabicWriting, QuranQuiz
+
+  20.6  Hadith Tab (3 screens)
+        HadithScreen (HadithList) → HadithCollection, HadithSearchResults
+
+  20.7  Community Tab (3 screens)
+        CommunityScreen (CommunityMain) → UserProfile, SalatLeaderboard
+
+  20.8  Profile Tab (2 screens)
+        ProfileScreen (ProfileMain) → Settings
+
+  20.9  FloatingMiniPlayer
+        - Persistent audio overlay above all tabs
+        - Active when any audio is playing
+
+================================================================================
+  21. BACKEND API — ALL ENDPOINTS (Complete List)
+================================================================================
+
+  Auth:
+    POST   /api/auth/register      — Register new user
+    POST   /api/auth/login         — Login with email/password
+    GET    /api/auth/me            — Get current user from JWT
+
+  Users:
+    GET    /api/users              — List all users (admin only)
+    GET    /api/users/search?q=    — Search users by name (regex, limit 10)
+    GET    /api/users/:id          — Get user by ID + isSubscribed check
+    PUT    /api/users/:id          — Update user (owner or admin)
+    DELETE /api/users/:id          — Delete user (admin)
+    DELETE /api/users/me/delete    — Delete own account + all messages
+    POST   /api/users/:id/subscribe    — Befriend a user
+    DELETE /api/users/:id/subscribe    — Unfriend a user
+
+  Quran:
+    GET    /api/quran/surahs                       — All 114 surah metadata
+    GET    /api/quran/surah/:number                — Full surah ayahs + metadata
+    GET    /api/quran/surah/:number/metadata       — Surah metadata only
+    GET    /api/quran/surah/:number/ayah/:number   — Single ayah
+    GET    /api/quran/juz                          — All 30 juz mapped
+    GET    /api/quran/juz/:number                  — Ayahs for a juz
+    GET    /api/quran/basic-search?q=&lang=        — Text substring search
+    GET    /api/quran/semantic-search?q=&limit=    — BGE ONNX vector search
+    GET    /api/quran/stats                        — Quran statistics
+
+  Hadith:
+    GET    /api/hadith/collections                         — All 6 collections
+    GET    /api/hadith/stats                               — Statistics
+    GET    /api/hadith/stats/all                           — Statistics (alias)
+    GET    /api/hadith/:collection                         — Paginated hadiths
+    GET    /api/hadith/:collection/chapters                — Chapter list
+    GET    /api/hadith/:collection/chapter/:number         — Chapter hadiths
+    GET    /api/hadith/:collection/books                   — Book structure
+    GET    /api/hadith/:collection/hadith/:id              — Single hadith by ID
+    GET    /api/hadith/:collection/:number                 — Hadith by number
+    GET    /api/hadith/:collection/search?q=&lang=         — Text search
+
+  Salat:
+    POST   /api/salat/pray                                 — Record prayer
+    POST   /api/salat/skip                                 — Record skip
+    GET    /api/salat/score                                — User score + rank
+    GET    /api/salat/leaderboard?type=&limit=             — Friends-only leaderboard
+
+  Quiz:
+    GET    /api/quiz/surah/:number                         — Full quiz (vocab + tafsir)
+    GET    /api/quiz/surah/:number/words?limit=&difficulty= — Vocabulary quiz
+    GET    /api/quiz/surah/:number/tafsir?limit=&type=     — Tafsir quiz
+    GET    /api/quiz/stats                                 — Quiz statistics
+    GET    /api/quiz/random?surahNumber=&count=&type=      — Random questions
+    POST   /api/quiz/clear-cache                           — Clear quiz cache
+
+  Messages:
+    POST   /api/messages                                   — Create message
+    GET    /api/messages                                   — Get messages (self + friends)
+    DELETE /api/messages/:id                                — Delete own message
+
+  Chat (AI Proxy):
+    POST   /api/chat                                       — Proxy to Flask AI service
+    GET    /api/chat/health                                — AI service health check
+
+  System:
+    GET    /api/health                                     — Backend health check
+
+================================================================================
+  22. DATABASE MODELS & SCHEMAS
+================================================================================
+
+  22.1  User Model
+        - name: String (required, trimmed)
+        - email: String (required, unique, lowercase, regex-validated)
+        - password: String (required, min 6, select: false — hidden by default)
+        - phoneNumber: String (trimmed)
+        - profilePicture: String (default '')
+        - isActive: Boolean (default true)
+        - role: enum ['user', 'admin'] (default 'user')
+        - subscriptions: [ObjectId → User] (befriend array)
+        - timestamps: createdAt, updatedAt
+        - Pre-save hook: bcrypt password hashing (salt 10)
+        - Instance method: matchPassword(enteredPassword) → bcrypt compare
+
+  22.2  SalatScore Model
+        - user: ObjectId → User (required, unique)
+        - weeklyScore: Number (default 0)
+        - bestWeeklyScore: Number (default 0)
+        - currentMultiplier: Number (default 1)
+        - weeklyPrayerCount: Number (default 0)
+        - totalPrayers: Number (default 0)
+        - lastPrayerAt: Date (default null)
+        - lastPrayerKey: String (default null)
+        - weekStartDate: Date (default Date.now)
+        - timestamps: createdAt, updatedAt
+        - Indexes: { weeklyScore: -1 }, { bestWeeklyScore: -1 }
+
+  22.3  Message Model
+        - user: ObjectId → User (required)
+        - content: String (required, trimmed)
+        - timestamps: createdAt, updatedAt
+
+  22.4  Quran Model (schema exists, controller reads from JSON)
+        - surah: Number (1-114, indexed)
+        - ayah: Number (≥1, indexed)
+        - arabicText: String (required)
+        - translationEn, translationBn: String
+        - metadata: { juz, page, manzil, ruku, hizbQuarter, sajda }
+        - Unique compound index: { surah, ayah }
+
+  22.5  Hadith Model (schema exists, controller reads from JSON)
+        - collection: enum [bukhari, muslim, abudawud, tirmidhi, nasai, ibnmajah]
+        - bookNumber, bookName, chapter, chapterNumber
+        - hadithNumber: Number (required)
+        - arabicText: String (required)
+        - translationEn, translationBn: String
+        - metadata: { narrator, grade, reference }
+        - Unique compound index: { collection, hadithNumber }
+
+  22.6  SurahMetadata Model
+        - surahNumber: Number (1-114, unique, indexed)
+        - nameArabic, nameTransliteration, nameTranslation: String (required)
+        - revelationType: enum ['Meccan', 'Medinan']
+        - ayahCount: Number (required)
+        - revelationOrder: Number (1-114)
+        - meaning: String
+
+================================================================================
+  23. ML/AI SEARCH PIPELINE
+================================================================================
+
+  23.1  Two-Stage RAG Search (Quran + Hadith)
+        - Stage 1 — Embedding: BGE-base-en-v1.5 (768-dimensional vectors)
+          · ONNX Runtime Node for inference
+          · @xenova/transformers for tokenization
+        - Stage 2 — Retrieval: ChromaDB HNSW index
+          · Approximate nearest neighbor search
+          · Returns top candidates
+        - Stage 3 — Reranking: BGE Reranker (cross-encoder)
+          · Cross-checks query-document relevance
+          · Re-scores and sorts
+        - Output: top 7 results in ~2-3 seconds
+
+  23.2  ML Search Module Files (backend/ml-search/)
+        - vector-search.js — Quran vector search engine
+        - hadith-vector-search.js — Hadith vector search engine
+        - ollama-search.js — Ollama-based Quran search
+        - ollama-hadith-search.js — Ollama-based hadith search
+        - query-normalizer.js — Query preprocessing and normalization
+
+  23.3  Search Modes
+        - QURAN_SEARCH_MODE env variable controls mode:
+          · "vector" — use local BGE ONNX embeddings
+          · Default — basic text search
+        - Semantic search routes mounted BEFORE basic routes (priority)
+
+================================================================================
+  24. DATA SOURCES & BUNDLED ASSETS
+================================================================================
+
+  24.1  Quran Data (quran/)
+        - 114 surah JSON files (surah/surah_1.json – surah_114.json)
+        - surah.json — master surah metadata
+        - juz.json — juz-to-surah mapping
+        - 114 tajweed files (tajweed/)
+        - 3 translation directories: ar/, en/, id/
+        - 119 quiz files: 114 per-surah + dictionary + tafsir quizzes + summaries
+
+  24.2  Hadith Data (hadith-json/)
+        - 6 collection JSON files:
+          · bukhari.json, muslim.json, abudawud.json
+          · tirmidhi.json, nasai.json, ibnmajah.json
+        - TypeScript scraper + build system (tsup.config.ts, biome.json)
+
+  24.3  Mobile App Bundled Data (mobile-app/src/data/)
+        - quran_data.json — full Quran Arabic text
+        - quran_translation.json — English translations
+        - surah_metadata.json — 114 surah info
+        - tafseer.json — Tafseer text (Tazkirul Quran)
+        - duas.json — 72+ duas across 11 categories
+        - lectures.json — 900+ lectures metadata
+        - quranWords.json — Arabic vocabulary for writing practice
+
+  24.4  Tafseer Sources
+        - new tafseer/abridged-explanation-of-the-quran.json
+        - tazkirul-quran-en.json/tazkirul-quran-en.json
+        - data/tafseer.txt
+
+  24.5  AI Training Data (ingested into ChromaDB)
+        - abridged-explanation-of-the-quran.json
+        - en-tafsir-maarif-ul-quran.json (Mufti Muhammad Shafi)
+        - tazkirul-quran-en.txt
+        - BahishtiZewar_text.txt (Maulana Ashraf Ali Thanwi)
+        - ihya-v1-English_text.txt (Imam al-Ghazali)
+        - bukhari.json
+        - tafseer.txt
+
+================================================================================
+  25. EXTERNAL APIs & INTEGRATIONS
+================================================================================
+
+  25.1  Aladhan API
+        - GET https://api.aladhan.com/v1/gpiToH — Hijri date conversion
+        - Used by: IslamicCalendarService, NotificationService
+
+  25.2  Aladhan CDN (Audio)
+        - https://cdn.aladhan.com/audio/adhaan/1.mp3 — Mishary Rashid Alafasy azan
+        - Used by: NotificationService
+
+  25.3  OpenStreetMap Overpass API
+        - POST https://overpass-api.de/api/interpreter — OSM mosque queries
+        - Free, no API key required
+        - Query: amenity=place_of_worship + religion=muslim OR building=mosque
+        - Used by: mosqueService
+
+  25.4  Gold/Silver Price APIs (3-tier fallback)
+        - Primary: https://www.goldapi.io/api/XAU/BDT (gold), /XAG/BDT (silver)
+        - Fallback 1: https://data-asg.goldprice.org/dbXRates/BDT
+        - Fallback 2: https://api.frankfurter.app/latest?from=USD&to=BDT +
+                       https://api.metals.dev/v1/latest?api_key=demo&currency=USD&unit=gram
+        - Hardcoded fallback: 12,800 BDT/g gold, 165 BDT/g silver
+        - Used by: ZakatService
+
+  25.5  Google Gemini Vision API
+        - POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent
+        - Arabic handwriting evaluation
+        - Requires EXPO_PUBLIC_GEMINI_API_KEY
+        - Used by: AIScoringService
+
+  25.6  Internet Archive
+        - MP3 lecture streaming URLs
+        - 900+ lectures from 9 speakers
+        - Used by: LecturePlayerScreen (audio streaming)
+
+  25.7  Quran Audio CDN
+        - ${EXPO_PUBLIC_AUDIO_BASE_URL}${key}.mp3
+        - Per-verse recitation audio
+        - Used by: AudioContext
+
+  25.8  Ollama (Local)
+        - http://127.0.0.1:11434/api/chat — LLM inference
+        - Models: llama3.2 (generation), nomic-embed-text (embeddings)
+        - Used by: services/ai/api_server.py
+
+================================================================================
+  26. OFFLINE CAPABILITIES
+================================================================================
+
+  26.1  Fully Offline (no internet required)
+        - Quran reading: all 114 surahs with Arabic + translations + tafseer
+        - Dua & Adhkar: 72+ duas browsing, search, favorites, counters
+        - Islamic Lectures: browsing metadata (streaming requires internet)
+        - Prayer tracking: local salat recording + streak
+        - Hijri calendar: local date calculation fallback
+        - Qibla compass: magnetometer-based (GPS needs initial fix)
+        - Quiz: all 119 quiz files bundled
+        - Settings: all preferences stored locally
+        - Arabic writing: canvas + letter data (scoring needs internet)
+
+  26.2  Requires Internet
+        - AI Chat (ILM): needs backend + Ollama
+        - Semantic search: needs backend ML pipeline
+        - Community/Social: posts, messages, user search
+        - Leaderboard: friends-only rankings
+        - Nearby Mosques: Overpass API queries
+        - Zakat metal prices: live gold/silver prices
+        - Lecture streaming: audio playback
+        - Verse audio: Quran recitation streaming
+        - Azan audio: notification sound
+        - Login/Register: authentication
+
+================================================================================
+  27. PERSISTENT STORAGE (AsyncStorage Keys)
+================================================================================
+
+  Key                                  | Service               | Data Type
+  -------------------------------------|----------------------|----------------------------
+  token                                | AuthContext / api.js  | JWT string
+  @salat_tracking                      | SalatService          | { date: { prayer: bool } }
+  @salat_streak                        | SalatService          | Integer string
+  @dua_favorites                       | DuaService            | Array of dua IDs
+  @dua_counters                        | DuaService            | { duaId: count }
+  @lecture_favorites                    | LectureService        | Array of lecture IDs
+  @lecture_recent                       | LectureService        | Array of IDs (max 20)
+  @musafir_home_location               | MusafirService        | { lat, lon, city, country }
+  @musafir_travel_status               | MusafirService        | { stayDays, departureDate }
+  @scheduled_notifications_azan        | NotificationService   | Notification IDs
+  @scheduled_notifications_events      | NotificationService   | Notification IDs
+  @scheduled_notifications_forbidden   | NotificationService   | Notification IDs
+  @quran_quiz_stats                    | QuizStatsService      | { wordId: { correct, wrong } }
+  @app_settings                        | SettingsContext        | Settings object (10 keys)
+  @hijri_calendar_notes                | HijriCalendarScreen   | Calendar notes
+  @hijri_calendar_reminders            | HijriCalendarScreen   | Event reminders
+
+================================================================================
+                          END OF FUNCTIONALITY INVENTORY
+================================================================================
+
+Total Screens:         34
+Total Services:        16
+Total Context Providers: 3
+Total Backend Endpoints: 38
+Total Database Models:   6
+Total AsyncStorage Keys: 15
+Total External APIs:     8
+Total Bundled Data Files: 8+ JSON datasets
+Total Quiz Files:        119
+Total Hadith Collections: 6
+Total Duas:              72+
+Total Lectures:          900+
+Total Islamic Events:    11
+Total Surah Files:       114
+Total Arabic Letters:    32+
+
+================================================================================
