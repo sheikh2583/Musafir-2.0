@@ -72,9 +72,7 @@ export default function CommunityScreen({ navigation }) {
   );
 
   useEffect(() => {
-    if (searchQuery.trim().length > 0) {
-      performSearch(searchQuery);
-    } else {
+    if (searchQuery.trim().length === 0) {
       setSearchResults([]);
     }
   }, [searchQuery]);
@@ -106,7 +104,7 @@ export default function CommunityScreen({ navigation }) {
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await api.get('/salat/leaderboard?type=weekly&limit=5&friends=true');
+      const response = await api.get('/salat/leaderboard?type=weekly&limit=5');
       if (response.data?.success) {
         setLeaderboard(response.data.data.leaderboard || []);
         setMyRank(response.data.data.myRank);
@@ -125,6 +123,7 @@ export default function CommunityScreen({ navigation }) {
     try {
       const response = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
       setSearchResults(response.data);
+      setShowSearch(true);
     } catch (error) {
       setSearchResults([]);
     } finally {
@@ -191,54 +190,6 @@ export default function CommunityScreen({ navigation }) {
   // ─── Render Helpers ────────────────────────────
   const renderHeader = () => (
     <View>
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color="#808080" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search & befriend users..."
-            placeholderTextColor="#808080"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onFocus={() => setShowSearch(true)}
-            autoCapitalize="none"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); setShowSearch(false); }} activeOpacity={0.7}>
-              <Ionicons name="close-circle" size={18} color="#808080" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Search Results */}
-        {showSearch && searchResults.length > 0 && (
-          <View style={styles.searchDropdown}>
-            {searchResults.map((u) => (
-              <TouchableOpacity
-                key={u._id}
-                style={styles.searchItem}
-                activeOpacity={0.7}
-                onPress={() => {
-                  setShowSearch(false);
-                  setSearchQuery('');
-                  navigation.navigate('UserProfile', { userId: u._id });
-                }}
-              >
-                <View style={styles.searchAvatar}>
-                  <Text style={styles.searchAvatarText}>{u.name?.[0]?.toUpperCase() || 'U'}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.searchName}>{u.name}</Text>
-                  <Text style={styles.searchEmail}>{u.email}</Text>
-                </View>
-                <Ionicons name="person-add-outline" size={18} color="#D4A84B" />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
-
       {/* Mini Leaderboard */}
       <TouchableOpacity
         style={styles.leaderboardCard}
@@ -392,6 +343,58 @@ export default function CommunityScreen({ navigation }) {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
+        {/* Search Bar — fixed above list so keyboard persists */}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={18} color="#808080" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search & befriend users..."
+              placeholderTextColor="#808080"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={() => performSearch(searchQuery)}
+              returnKeyType="search"
+              autoCapitalize="none"
+              blurOnSubmit={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults([]); setShowSearch(false); Keyboard.dismiss(); }} activeOpacity={0.7}>
+                <Ionicons name="close-circle" size={18} color="#808080" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Search Results Dropdown */}
+          {showSearch && searchResults.length > 0 && (
+            <View style={styles.searchDropdown}>
+              {searchResults.map((u) => (
+                <TouchableOpacity
+                  key={u._id}
+                  style={styles.searchItem}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setShowSearch(false);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                    Keyboard.dismiss();
+                    navigation.navigate('UserProfile', { userId: u._id });
+                  }}
+                >
+                  <View style={styles.searchAvatar}>
+                    <Text style={styles.searchAvatarText}>{u.name?.[0]?.toUpperCase() || 'U'}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.searchName}>{u.name}</Text>
+                    <Text style={styles.searchEmail}>{u.email}</Text>
+                  </View>
+                  <Ionicons name="person-add-outline" size={18} color="#D4A84B" />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
         <FlatList
           ref={flatListRef}
           data={displayMessages}
@@ -444,8 +447,12 @@ const styles = StyleSheet.create({
   },
   // Search
   searchSection: {
-    marginBottom: 16,
+    marginBottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
     zIndex: 100,
+    backgroundColor: '#121212',
   },
   searchBar: {
     flexDirection: 'row',

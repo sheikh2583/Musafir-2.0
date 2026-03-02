@@ -1,5 +1,6 @@
 const SalatScore = require('../models/SalatScore.model');
 const User = require('../models/User.model');
+const mongoose = require('mongoose');
 
 // Prayer order for checking consecutive prayers
 const PRAYER_ORDER = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -237,26 +238,28 @@ exports.getMyScore = async (req, res) => {
 };
 
 /**
- * Get leaderboard — supports global or friends-only
- * GET /api/salat/leaderboard?type=weekly|alltime&limit=50&friends=true
+ * Get friends-only leaderboard
+ * GET /api/salat/leaderboard?type=weekly|alltime&limit=50
+ * Always scoped to friends (subscriptions) + self
  */
 exports.getLeaderboard = async (req, res) => {
   try {
-    const { type = 'weekly', limit = 50, friends } = req.query;
-    const userId = req.user?.id;
+    const { type = 'weekly', limit = 50 } = req.query;
+    const userId = req.user?._id;
     
     const sortField = type === 'alltime' ? 'bestWeeklyScore' : 'weeklyScore';
 
-    // Build filter
-    const filter = { [sortField]: { $gt: 0 } };
-
-    // Friends-only: restrict to user's subscriptions + self
-    if (friends === 'true' && userId) {
-      const currentUser = await User.findById(userId).select('subscriptions').lean();
-      const friendIds = currentUser?.subscriptions || [];
-      // Include self + friends
-      filter.user = { $in: [userId, ...friendIds.map(id => id.toString())] };
-    }
+    // Always friends-only: current user + their subscriptions
+    const currentUser = await User.findById(userId).select('subscriptions').lean();
+    const friendIds = (currentUser?.subscriptions || []).map(id => new mongoose.Types.ObjectId(id));
+    const selfId = new mongoose.Types.ObjectId(userId);
+    
+    console.log(`[Leaderboard] userId=${userId}, friends=${friendIds.length}, filter will include ${friendIds.length + 1} users`);
+    
+    const filter = {
+      [sortField]: { $gt: 0 },
+      user: { $in: [selfId, ...friendIds] }
+    };
     
     const leaderboard = await SalatScore.find(filter)
       .sort({ [sortField]: -1 })
@@ -272,19 +275,17 @@ exports.getLeaderboard = async (req, res) => {
       score: type === 'alltime' ? entry.bestWeeklyScore : entry.weeklyScore,
       totalPrayers: entry.totalPrayers,
       currentMultiplier: entry.currentMultiplier,
-      isCurrentUser: userId && entry.user?._id?.toString() === userId
+      isCurrentUser: userId && entry.user?._id?.toString() === userId.toString()
     }));
     
-    // Get current user's rank if authenticated
+    // Get current user's rank among friends
     let myRank = null;
-    if (userId) {
-      const myScore = await SalatScore.findOne({ user: userId });
-      if (myScore) {
-        myRank = await SalatScore.countDocuments({
-          ...filter,
-          [sortField]: { $gt: myScore[sortField] }
-        }) + 1;
-      }
+    const myScore = await SalatScore.findOne({ user: userId });
+    if (myScore) {
+      myRank = await SalatScore.countDocuments({
+        ...filter,
+        [sortField]: { $gt: myScore[sortField] }
+      }) + 1;
     }
     
     res.status(200).json({
@@ -293,7 +294,7 @@ exports.getLeaderboard = async (req, res) => {
         leaderboard: formattedLeaderboard,
         myRank,
         type,
-        friendsOnly: friends === 'true',
+        friendsOnly: true,
         totalParticipants: await SalatScore.countDocuments(filter)
       }
     });

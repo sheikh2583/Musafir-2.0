@@ -52,7 +52,9 @@ export default function SalatLeaderboardScreen({ navigation }) {
 
   const loadLeaderboard = async () => {
     try {
-      const response = await api.get(`/salat/leaderboard?type=${leaderboardType}&limit=100&friends=true`);
+      setLoading(true);
+      setLeaderboard([]); // Clear stale data before fetch
+      const response = await api.get(`/salat/leaderboard?type=${leaderboardType}&limit=100`);
       if (response.data?.success) {
         setLeaderboard(response.data.data.leaderboard);
         setMyRank(response.data.data.myRank);
