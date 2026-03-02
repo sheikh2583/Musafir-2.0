@@ -42,6 +42,7 @@
 - [Folder Structure](#-folder-structure)
 - [AI Knowledge Base](#-ai-knowledge-base)
 - [Gitignored Assets](#-gitignored-assets)
+- [Bug Report](#-bug-report)
 - [Contributing](#-contributing)
 
 ---
@@ -376,6 +377,16 @@ This means ILM's answers are grounded in centuries of Islamic scholarship — no
 | `venv/` / `.venv/` | ~1.2 GB | Restore with `pip install -r requirements.txt` |
 | `*.safetensors`, `*.bin`, `*.onnx` | varies | Model weight files |
 | `*.mp3`, `*.zip` | varies | Large media and archives |
+
+---
+
+## 🐛 Bug Report
+
+A full bug report covering all commits in this repository is available in the docs folder:
+
+👉 **[docs/BUG_REPORT.md](docs/BUG_REPORT.md)**
+
+The report documents 12 issues ranging from a ReDoS security vulnerability and hardcoded developer IPs to scoring logic inconsistencies and missing data files, each with severity ratings and suggested fixes.
 
 ---
 
