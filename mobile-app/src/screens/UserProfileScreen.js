@@ -44,12 +44,12 @@ export default function UserProfileScreen({ route, navigation }) {
         // Unsubscribe
         await api.delete(`/users/${userId}/subscribe`);
         setIsSubscribed(false);
-        Alert.alert('Success', 'Unsubscribed successfully');
+        Alert.alert('Success', 'Unfriended successfully');
       } else {
-        // Subscribe
+        // Befriend
         await api.post(`/users/${userId}/subscribe`);
         setIsSubscribed(true);
-        Alert.alert('Success', 'Subscribed successfully');
+        Alert.alert('Success', 'Befriended successfully');
       }
     } catch (error) {
       console.error('Subscribe error:', error);
@@ -84,7 +84,9 @@ export default function UserProfileScreen({ route, navigation }) {
         }
       >
         <View style={styles.profileHeader}>
-          <Text style={styles.avatar}>{userData?.name?.[0]?.toUpperCase() || 'U'}</Text>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarLetter}>{userData?.name?.[0]?.toUpperCase() || 'U'}</Text>
+          </View>
           <Text style={styles.name}>{userData?.name || 'User'}</Text>
           <Text style={styles.email}>{userData?.email || ''}</Text>
         </View>
@@ -104,7 +106,7 @@ export default function UserProfileScreen({ route, navigation }) {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.buttonText}>
-              {isOwnProfile ? 'Unsubscribe' : (isSubscribed ? 'Unsubscribe' : 'Subscribe')}
+              {isOwnProfile ? 'Unfriend' : (isSubscribed ? 'Unfriend' : 'Befriend')}
             </Text>
           )}
         </TouchableOpacity>
@@ -113,8 +115,8 @@ export default function UserProfileScreen({ route, navigation }) {
           {isOwnProfile
             ? "This is your profile"
             : (isSubscribed 
-              ? "You'll see this user's messages on your home feed" 
-              : "Subscribe to see this user's messages on your home feed")}
+              ? "You'll see this user's messages in Community" 
+              : "Befriend to see this user's messages in Community")}
         </Text>
       </View>
     </View>
@@ -145,17 +147,19 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 40,
   },
-  avatar: {
+  avatarCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: '#D4A84B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+  },
+  avatarLetter: {
     color: '#121212',
     fontSize: 36,
     fontWeight: 'bold',
-    textAlign: 'center',
-    lineHeight: 80,
-    marginBottom: 15,
   },
   name: {
     fontSize: 24,

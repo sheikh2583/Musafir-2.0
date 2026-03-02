@@ -591,9 +591,6 @@ export default function MusafirScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.accent} />
         }
       >
-        {/* Ramadan Banner (always on top if it's Ramadan) */}
-        {renderRamadanBanner()}
-
         {/* Musafir Status Banner */}
         {renderMusafirStatus()}
 
@@ -648,10 +645,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: Platform.OS === 'ios' ? 50 : 10,
+    paddingTop: Platform.OS === 'ios' ? 56 : 44,
     paddingHorizontal: 16,
     paddingBottom: 12,
-    backgroundColor: COLORS.bg,
+    backgroundColor: '#1E1E1E',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.cardBorder,
   },

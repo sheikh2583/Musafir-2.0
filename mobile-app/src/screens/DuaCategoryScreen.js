@@ -94,7 +94,7 @@ export default function DuaCategoryScreen({ navigation }) {
           style={styles.favHeaderBtn}
           onPress={() => navigation.navigate('DuaFavorites')}
         >
-          <Ionicons name="heart" size={22} color="#F44336" />
+          <Ionicons name="heart" size={22} color="#E74C3C" />
           {favoriteCount > 0 && (
             <View style={styles.favBadge}>
               <Text style={styles.favBadgeText}>{favoriteCount}</Text>
@@ -173,7 +173,7 @@ export default function DuaCategoryScreen({ navigation }) {
                 activeOpacity={0.7}
               >
                 <View style={styles.favCardLeft}>
-                  <Ionicons name="heart" size={24} color="#F44336" />
+                  <Ionicons name="heart" size={24} color="#E74C3C" />
                   <View style={styles.favCardText}>
                     <Text style={styles.favCardTitle}>My Favorites</Text>
                     <Text style={styles.favCardSub}>{favoriteCount} saved dua{favoriteCount !== 1 ? 's' : ''}</Text>
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -2,
     right: -4,
-    backgroundColor: '#F44336',
+    backgroundColor: '#E74C3C',
     borderRadius: 8,
     minWidth: 16,
     height: 16,

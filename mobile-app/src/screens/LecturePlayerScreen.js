@@ -9,7 +9,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, StatusBar,
-  Platform, ActivityIndicator, Share, Alert,
+  Platform, ActivityIndicator, Share, Alert, Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -244,8 +244,8 @@ export default function LecturePlayerScreen({ route, navigation }) {
           style={styles.progressTrack}
           onPress={(e) => {
             const x = e.nativeEvent.locationX;
-            // approximate width
-            seekTo(x / 320);
+            const trackWidth = Dimensions.get('window').width - 48;
+            seekTo(x / trackWidth);
           }}
           activeOpacity={0.9}
         >

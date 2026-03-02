@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.title}>Islamic App</Text>
+      <Text style={styles.title}>Musafir</Text>
       <Text style={styles.subtitle}>Welcome back</Text>
 
       <TextInput

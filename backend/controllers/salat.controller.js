@@ -237,19 +237,28 @@ exports.getMyScore = async (req, res) => {
 };
 
 /**
- * Get global leaderboard
- * GET /api/salat/leaderboard
+ * Get leaderboard — supports global or friends-only
+ * GET /api/salat/leaderboard?type=weekly|alltime&limit=50&friends=true
  */
 exports.getLeaderboard = async (req, res) => {
   try {
-    const { type = 'weekly', limit = 50 } = req.query;
+    const { type = 'weekly', limit = 50, friends } = req.query;
     const userId = req.user?.id;
     
     const sortField = type === 'alltime' ? 'bestWeeklyScore' : 'weeklyScore';
+
+    // Build filter
+    const filter = { [sortField]: { $gt: 0 } };
+
+    // Friends-only: restrict to user's subscriptions + self
+    if (friends === 'true' && userId) {
+      const currentUser = await User.findById(userId).select('subscriptions').lean();
+      const friendIds = currentUser?.subscriptions || [];
+      // Include self + friends
+      filter.user = { $in: [userId, ...friendIds.map(id => id.toString())] };
+    }
     
-    const leaderboard = await SalatScore.find({
-      [sortField]: { $gt: 0 }
-    })
+    const leaderboard = await SalatScore.find(filter)
       .sort({ [sortField]: -1 })
       .limit(parseInt(limit))
       .populate('user', 'name email')
@@ -272,6 +281,7 @@ exports.getLeaderboard = async (req, res) => {
       const myScore = await SalatScore.findOne({ user: userId });
       if (myScore) {
         myRank = await SalatScore.countDocuments({
+          ...filter,
           [sortField]: { $gt: myScore[sortField] }
         }) + 1;
       }
@@ -283,7 +293,8 @@ exports.getLeaderboard = async (req, res) => {
         leaderboard: formattedLeaderboard,
         myRank,
         type,
-        totalParticipants: await SalatScore.countDocuments({ [sortField]: { $gt: 0 } })
+        friendsOnly: friends === 'true',
+        totalParticipants: await SalatScore.countDocuments(filter)
       }
     });
     

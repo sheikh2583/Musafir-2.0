@@ -1,25 +1,24 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, RefreshControl, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard, Share } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, RefreshControl, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard, Share, Animated, Easing } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import SalatService from '../services/SalatService';
 import IslamicCalendarService from '../services/IslamicCalendarService';
+import MusafirService from '../services/MusafirService';
 
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
   const scrollViewRef = useRef(null);
-  const postInputY = useRef(0);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [userData, setUserData] = useState(user);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
+
+  // ILM Orb animation
+  const orbPulse = useRef(new Animated.Value(1)).current;
+  const orbGlow = useRef(new Animated.Value(0.4)).current;
+  const orbRotate = useRef(new Animated.Value(0)).current;
   
   // Salat state
   const [hijriDate, setHijriDate] = useState(null);
@@ -43,16 +42,38 @@ export default function HomeScreen({ navigation }) {
   const [forbiddenTimes, setForbiddenTimes] = useState([]);
   const [activeForbidden, setActiveForbidden] = useState(null);
 
+  // Ramadan Sehri/Iftar state
+  const [ramadanTimes, setRamadanTimes] = useState(null);
+  const [ramadanLoading, setRamadanLoading] = useState(false);
+  const [showFastingCountdown, setShowFastingCountdown] = useState(false);
+  const [fastingCountdown, setFastingCountdown] = useState(null); // { label, hours, mins, secs, isFasting }
+
   useEffect(() => {
-    fetchMessages();
     fetchUserData();
     loadSalatData();
     loadIslamicCalendar();
+    loadRamadanTimes();
+
+    // ILM Orb animations
+    Animated.loop(
+      Animated.timing(orbRotate, { toValue: 1, duration: 10000, easing: Easing.linear, useNativeDriver: true })
+    ).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(orbPulse, { toValue: 1.08, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(orbPulse, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(orbGlow, { toValue: 0.8, duration: 1800, useNativeDriver: true }),
+        Animated.timing(orbGlow, { toValue: 0.3, duration: 1800, useNativeDriver: true }),
+      ])
+    ).start();
   }, []);
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchMessages();
       fetchUserData();
       loadSalatData();
     }, [])
@@ -69,6 +90,54 @@ export default function HomeScreen({ navigation }) {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Fasting countdown timer — runs every second when banner is tapped
+  useEffect(() => {
+    if (!showFastingCountdown || !ramadanTimes) return;
+    const tick = () => {
+      const now = new Date();
+      const sehriDate = parseTimeToDate(ramadanTimes.sehriEnd.formatted);
+      const iftarDate = parseTimeToDate(ramadanTimes.iftarTime.formatted);
+      const isFasting = now >= sehriDate && now < iftarDate;
+
+      let target, label;
+      if (isFasting) {
+        target = iftarDate;
+        label = 'Iftar in';
+      } else {
+        // After iftar → countdown to next sehri (next day's fajr)
+        target = now >= iftarDate
+          ? new Date(sehriDate.getTime() + 24 * 60 * 60 * 1000) // tomorrow's sehri
+          : sehriDate; // before sehri today
+        label = 'Sehri in';
+      }
+
+      const diff = Math.max(0, target - now);
+      const hours = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setFastingCountdown({ label, hours, mins, secs, isFasting });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [showFastingCountdown, ramadanTimes]);
+
+  // Helper: parse "HH:MM" or "H:MM AM/PM" formatted time to today's Date
+  const parseTimeToDate = (formatted) => {
+    const now = new Date();
+    let hours, minutes;
+    const lower = formatted.toLowerCase();
+    if (lower.includes('am') || lower.includes('pm')) {
+      const [time, period] = formatted.split(/\s+/);
+      const [h, m] = time.split(':').map(Number);
+      hours = period.toLowerCase() === 'pm' && h !== 12 ? h + 12 : (period.toLowerCase() === 'am' && h === 12 ? 0 : h);
+      minutes = m;
+    } else {
+      [hours, minutes] = formatted.split(':').map(Number);
+    }
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+  };
 
   const loadSalatData = async () => {
     const hijri = SalatService.getHijriDate();
@@ -146,6 +215,29 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const loadRamadanTimes = async () => {
+    try {
+      setRamadanLoading(true);
+      if (MusafirService.isRamadan()) {
+        const result = await MusafirService.getPrayerTimesForCurrentLocation();
+        if (!result.error) {
+          setRamadanTimes({
+            sehriEnd: result.times.fajr,
+            iftarTime: result.times.maghrib,
+            city: result.location?.city || '',
+            country: result.location?.country || '',
+          });
+        }
+      } else {
+        setRamadanTimes(null);
+      }
+    } catch (e) {
+      console.log('Ramadan times error:', e.message);
+    } finally {
+      setRamadanLoading(false);
+    }
+  };
+
   const loadIslamicCalendar = async () => {
     setCalendarLoading(true);
     try {
@@ -188,23 +280,7 @@ export default function HomeScreen({ navigation }) {
     setUserData(user);
   }, [user]);
 
-  useEffect(() => {
-    if (searchQuery.trim().length > 0) {
-      performSearch(searchQuery);
-    } else {
-      setSearchResults([]);
-      setShowSearchResults(false);
-    }
-  }, [searchQuery]);
 
-  const fetchMessages = async () => {
-    try {
-      const response = await api.get('/messages');
-      setMessages(response.data);
-    } catch (error) {
-      console.error('Fetch messages error:', error);
-    }
-  };
 
   const fetchUserData = async () => {
     try {
@@ -215,95 +291,13 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  const performSearch = async (query) => {
-    if (!query || query.trim().length === 0) {
-      setSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    setSearchLoading(true);
-    try {
-      const response = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
-      setSearchResults(response.data);
-      setShowSearchResults(true);
-    } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handlePostMessage = async () => {
-    if (!message.trim()) {
-      Alert.alert('Error', 'Please write a message');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await api.post('/messages', { content: message });
-      setMessage('');
-      await fetchMessages();
-      Alert.alert('Success', 'Message posted!');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to post message');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteMessage = async (messageId) => {
-    Alert.alert(
-      'Delete Message',
-      'Are you sure you want to delete this message?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.delete(`/messages/${messageId}`);
-              await fetchMessages();
-              Alert.alert('Success', 'Message deleted!');
-            } catch (error) {
-              Alert.alert('Error', error.response?.data?.message || 'Failed to delete message');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchMessages(), fetchUserData(), loadSalatData(), loadIslamicCalendar()]);
+    await Promise.all([fetchUserData(), loadSalatData(), loadIslamicCalendar()]);
     setRefreshing(false);
   };
 
-  const handleSearchFocus = () => {
-    if (searchQuery.trim().length > 0) {
-      setShowSearchResults(true);
-    }
-  };
 
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <KeyboardAvoidingView
@@ -334,6 +328,74 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.hijriDay}>{hijriDate.dayName}</Text>
           )}
           <Text style={styles.hijriTapHint}>Tap to view calendar</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Ramadan Sehri / Iftar Banner — only during Ramadan */}
+      {ramadanTimes && (
+        <TouchableOpacity
+          style={styles.ramadanHomeBanner}
+          onPress={() => setShowFastingCountdown(prev => !prev)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.ramadanHomeHeader}>
+            <Text style={styles.ramadanHomeEmoji}>🌙</Text>
+            <Text style={styles.ramadanHomeTitle}>Ramadan Mubarak</Text>
+          </View>
+          <View style={styles.ramadanHomeTimesRow}>
+            <View style={styles.ramadanHomeTimeBox}>
+              <Ionicons name="moon-outline" size={18} color="#7E57C2" />
+              <Text style={styles.ramadanHomeTimeLabel}>Sehri Ends</Text>
+              <Text style={styles.ramadanHomeTimeValue}>{ramadanTimes.sehriEnd.formatted}</Text>
+            </View>
+            <View style={styles.ramadanHomeDivider} />
+            <View style={styles.ramadanHomeTimeBox}>
+              <Ionicons name="sunny-outline" size={18} color="#FF9800" />
+              <Text style={styles.ramadanHomeTimeLabel}>Iftar Time</Text>
+              <Text style={styles.ramadanHomeTimeValue}>{ramadanTimes.iftarTime.formatted}</Text>
+            </View>
+          </View>
+
+          {/* Smart Countdown */}
+          {showFastingCountdown && fastingCountdown && (
+            <View style={styles.countdownContainer}>
+              <View style={styles.countdownDividerTop} />
+              <Ionicons
+                name={fastingCountdown.isFasting ? 'sunny-outline' : 'moon-outline'}
+                size={20}
+                color={fastingCountdown.isFasting ? '#FF9800' : '#7E57C2'}
+              />
+              <Text style={styles.countdownLabel}>{fastingCountdown.label}</Text>
+              <View style={styles.countdownDigitsRow}>
+                <View style={styles.countdownDigitBox}>
+                  <Text style={styles.countdownDigit}>{String(fastingCountdown.hours).padStart(2, '0')}</Text>
+                  <Text style={styles.countdownUnit}>hr</Text>
+                </View>
+                <Text style={styles.countdownColon}>:</Text>
+                <View style={styles.countdownDigitBox}>
+                  <Text style={styles.countdownDigit}>{String(fastingCountdown.mins).padStart(2, '0')}</Text>
+                  <Text style={styles.countdownUnit}>min</Text>
+                </View>
+                <Text style={styles.countdownColon}>:</Text>
+                <View style={styles.countdownDigitBox}>
+                  <Text style={styles.countdownDigit}>{String(fastingCountdown.secs).padStart(2, '0')}</Text>
+                  <Text style={styles.countdownUnit}>sec</Text>
+                </View>
+              </View>
+              <Text style={styles.countdownStatus}>
+                {fastingCountdown.isFasting ? '🤲 You are fasting — stay strong!' : '🌙 Rest well — Sehri is approaching'}
+              </Text>
+            </View>
+          )}
+
+          {ramadanTimes.city ? (
+            <Text style={styles.ramadanHomeLocation}>
+              📍 {ramadanTimes.city}{ramadanTimes.country ? `, ${ramadanTimes.country}` : ''}
+            </Text>
+          ) : null}
+          <Text style={styles.ramadanTapHint}>
+            {showFastingCountdown ? 'Tap to hide countdown' : 'Tap for countdown'}
+          </Text>
         </TouchableOpacity>
       )}
 
@@ -596,7 +658,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('SalatLeaderboard')}
         >
           <Ionicons name="trophy" size={18} color="#FFD700" />
-          <Text style={styles.leaderboardButtonText}>View Global Leaderboard</Text>
+          <Text style={styles.leaderboardButtonText}>Community Leaderboard</Text>
           <Ionicons name="chevron-forward" size={18} color="#D4A84B" />
         </TouchableOpacity>
       </View>
@@ -690,8 +752,8 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.musafirCardLeft}>
           <Text style={styles.musafirCardEmoji}>🕌</Text>
           <View style={styles.musafirCardText}>
-            <Text style={styles.musafirCardTitle}>Musafir Status</Text>
-            <Text style={styles.musafirCardSubtitle}>Qasr prayers, Sehri & Iftar times</Text>
+            <Text style={styles.musafirCardTitle}>Musafir</Text>
+            <Text style={styles.musafirCardSubtitle}>Traveller Qasr prayer status</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={20} color="#D4A84B" />
@@ -734,122 +796,6 @@ export default function HomeScreen({ navigation }) {
         </View>
       )}
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Search users by name..."
-          placeholderTextColor="#808080"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFocus={handleSearchFocus}
-          autoCapitalize="none"
-        />
-
-        {/* Search Results Dropdown */}
-        {showSearchResults && searchResults.length > 0 && (
-          <View style={styles.searchResultsDropdown} pointerEvents="box-none">
-            {searchResults.map((resultUser) => (
-              <TouchableOpacity
-                key={resultUser._id}
-                style={styles.searchResultItem}
-                activeOpacity={0.7}
-                onPressIn={() => {
-                  setShowSearchResults(false);
-                  setSearchQuery('');
-                  navigation.navigate('UserProfile', { userId: resultUser._id });
-                }}
-              >
-                <View style={styles.searchResultAvatar}>
-                  <Text style={styles.searchResultAvatarText}>
-                    {resultUser.name?.[0]?.toUpperCase() || 'U'}
-                  </Text>
-                </View>
-                <View style={styles.searchResultInfo}>
-                  <Text style={styles.searchResultName}>{resultUser.name}</Text>
-                  <Text style={styles.searchResultEmail}>{resultUser.email}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {showSearchResults && searchResults.length === 0 && searchQuery.trim().length > 0 && (
-          <View style={styles.searchResultsDropdown}>
-            <Text style={styles.noSearchResults}>No users found</Text>
-          </View>
-        )}
-      </View>
-
-      <View
-        style={styles.messageInputContainer}
-        onLayout={(e) => { postInputY.current = e.nativeEvent.layout.y; }}
-      >
-        <TextInput
-          style={styles.messageInput}
-          placeholder="Share your thoughts..."
-          placeholderTextColor="#808080"
-          value={message}
-          onChangeText={setMessage}
-          multiline={true}
-          maxLength={500}
-          onFocus={() => {
-            setTimeout(() => {
-              scrollViewRef.current?.scrollTo({ y: postInputY.current - 100, animated: true });
-            }, 300);
-          }}
-        />
-        <TouchableOpacity
-          style={[styles.postButton, loading && styles.postButtonDisabled]}
-          onPress={handlePostMessage}
-          disabled={loading}
-        >
-          <Text style={styles.postButtonText}>{loading ? 'Posting...' : 'Post'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.messagesTitle}>Community Messages</Text>
-
-      <View style={styles.messagesContainer}>
-        {messages.length === 0 ? (
-          <Text style={styles.noMessages}>No messages yet. Search and subscribe to users to see their messages!</Text>
-        ) : (
-          messages.map((msg) => (
-            <View key={msg._id} style={styles.messageCard}>
-              <View style={styles.messageHeader}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (msg.user?._id && msg.user._id !== userData?._id) {
-                      navigation.navigate('UserProfile', { userId: msg.user._id });
-                    }
-                  }}
-                  disabled={!msg.user?._id || msg.user._id === userData?._id}
-                >
-                  <Text style={[
-                    styles.messageName,
-                    msg.user?._id && msg.user._id !== userData?._id && styles.messageNameClickable
-                  ]}>
-                    {msg.user?.name || 'Unknown'}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.messageTime}>{formatTime(msg.createdAt)}</Text>
-              </View>
-              <Text style={styles.messageContent}>{msg.content}</Text>
-
-              {/* Show delete button only for user's own messages */}
-              {msg.user?._id === userData?._id && (
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteMessage(msg._id)}
-                >
-                  <Text style={styles.deleteButtonText}>🗑️</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))
-        )}
-      </View>
-
       {/* Share App Button */}
       <TouchableOpacity
         style={styles.shareAppCard}
@@ -867,13 +813,20 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
     </ScrollView>
     
-    {/* AI Chat Floating Action Button */}
+    {/* AI Chat ILM Orb FAB */}
     <TouchableOpacity
       style={styles.aiFab}
       onPress={() => navigation.navigate('AIChat')}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
-      <Ionicons name="sparkles" size={24} color="#000" />
+      {/* Outer glow ring */}
+      <Animated.View style={[styles.fabGlowRing, { opacity: orbGlow, transform: [{ scale: orbPulse }] }]} />
+      {/* Rotating accent ring */}
+      <Animated.View style={[styles.fabRotateRing, { transform: [{ rotate: orbRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }]} />
+      {/* Core orb */}
+      <Animated.View style={[styles.fabCore, { transform: [{ scale: orbPulse }] }]}>
+        <Text style={styles.fabIlmText}>عِلْم</Text>
+      </Animated.View>
     </TouchableOpacity>
   </KeyboardAvoidingView>
   );
@@ -893,17 +846,54 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  fabGlowRing: {
+    position: 'absolute',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 2,
+    borderColor: '#D4A84B',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+  fabRotateRing: {
+    position: 'absolute',
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    borderTopColor: '#D4A84B',
+    borderRightColor: 'rgba(212,168,75,0.3)',
+  },
+  fabCore: {
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: '#D4A84B',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
     shadowColor: '#D4A84B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 18,
+    elevation: 12,
+  },
+  fabIlmText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#121212',
+    textAlign: 'center',
   },
   hijriContainer: {
     backgroundColor: '#1E1E1E',
@@ -940,6 +930,126 @@ const styles = StyleSheet.create({
     color: '#5A5A5A',
     marginTop: 5,
     fontStyle: 'italic',
+  },
+  // Ramadan Sehri/Iftar Banner (below calendar)
+  ramadanHomeBanner: {
+    backgroundColor: 'rgba(126,87,194,0.12)',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 10,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(126,87,194,0.3)',
+  },
+  ramadanHomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  ramadanHomeEmoji: {
+    fontSize: 20,
+    marginRight: 6,
+  },
+  ramadanHomeTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#CE93D8',
+  },
+  ramadanHomeTimesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  ramadanHomeTimeBox: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  ramadanHomeTimeLabel: {
+    fontSize: 11,
+    color: '#B3B3B3',
+    marginTop: 4,
+  },
+  ramadanHomeTimeValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 3,
+  },
+  ramadanHomeDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(126,87,194,0.3)',
+  },
+  ramadanHomeLocation: {
+    fontSize: 10,
+    color: '#808080',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  ramadanTapHint: {
+    fontSize: 10,
+    color: 'rgba(206,147,216,0.5)',
+    textAlign: 'center',
+    marginTop: 6,
+  },
+  // Fasting Countdown
+  countdownContainer: {
+    alignItems: 'center',
+    marginTop: 14,
+    gap: 6,
+  },
+  countdownDividerTop: {
+    width: '60%',
+    height: 1,
+    backgroundColor: 'rgba(126,87,194,0.25)',
+    marginBottom: 6,
+  },
+  countdownLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#CE93D8',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  countdownDigitsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  countdownDigitBox: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(126,87,194,0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minWidth: 48,
+  },
+  countdownDigit: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    fontVariant: ['tabular-nums'],
+  },
+  countdownUnit: {
+    fontSize: 9,
+    color: '#B3B3B3',
+    marginTop: 1,
+  },
+  countdownColon: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#CE93D8',
+    marginHorizontal: 2,
+  },
+  countdownStatus: {
+    fontSize: 11,
+    color: '#B3B3B3',
+    textAlign: 'center',
+    marginTop: 4,
   },
   title: {
     fontSize: 28,
@@ -1447,14 +1557,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontStyle: 'italic',
   },
-  searchContainer: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   hadithTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#FFFFFF',
     marginLeft: 8,
     flex: 1,
   },
@@ -1466,13 +1572,13 @@ const styles = StyleSheet.create({
   },
   hadithText: {
     fontSize: 14,
-    color: '#444',
+    color: '#B3B3B3',
     lineHeight: 22,
     fontStyle: 'italic',
   },
   hadithNarrator: {
     fontSize: 12,
-    color: '#666',
+    color: '#808080',
     marginTop: 10,
     fontWeight: '500',
   },
@@ -1486,182 +1592,6 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     paddingVertical: 15,
-  },
-  searchContainer: {
-    position: 'relative',
-    marginBottom: 20,
-    zIndex: 1000,
-  },
-  searchInput: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 25,
-    padding: 15,
-    paddingLeft: 20,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-    color: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  searchResultsDropdown: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#333333',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 5,
-    maxHeight: 300,
-    zIndex: 1001,
-  },
-  searchResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-  },
-  searchResultAvatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    backgroundColor: '#D4A84B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  searchResultAvatarText: {
-    color: '#121212',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  searchResultInfo: {
-    flex: 1,
-  },
-  searchResultName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  searchResultEmail: {
-    fontSize: 14,
-    color: '#808080',
-  },
-  noSearchResults: {
-    padding: 20,
-    textAlign: 'center',
-    color: '#808080',
-    fontSize: 15,
-  },
-  messageInputContainer: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  messageInput: {
-    borderWidth: 1,
-    borderColor: '#333333',
-    backgroundColor: '#252525',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginBottom: 10,
-    color: '#FFFFFF',
-  },
-  postButton: {
-    backgroundColor: '#D4A84B',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  postButtonDisabled: {
-    backgroundColor: '#5A5A5A',
-  },
-  postButtonText: {
-    color: '#121212',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  messagesTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#D4A84B',
-    marginBottom: 15,
-  },
-  messagesContainer: {
-    flex: 1,
-  },
-  noMessages: {
-    textAlign: 'center',
-    color: '#808080',
-    fontSize: 16,
-    marginTop: 40,
-  },
-  messageCard: {
-    backgroundColor: '#1E1E1E',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 2,
-    position: 'relative',
-  },
-  messageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  messageName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#D4A84B',
-  },
-  messageNameClickable: {
-    textDecorationLine: 'underline',
-  },
-  messageTime: {
-    fontSize: 12,
-    color: '#808080',
-  },
-  messageContent: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    lineHeight: 22,
-    paddingRight: 40,
-  },
-  deleteButton: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#4A2E2E',
-  },
-  deleteButtonText: {
-    fontSize: 18,
   },
   // Qibla Compass Card
   qiblaCard: {

@@ -52,7 +52,7 @@ export default function SalatLeaderboardScreen({ navigation }) {
 
   const loadLeaderboard = async () => {
     try {
-      const response = await api.get(`/salat/leaderboard?type=${leaderboardType}&limit=100`);
+      const response = await api.get(`/salat/leaderboard?type=${leaderboardType}&limit=100&friends=true`);
       if (response.data?.success) {
         setLeaderboard(response.data.data.leaderboard);
         setMyRank(response.data.data.myRank);
@@ -164,7 +164,7 @@ export default function SalatLeaderboardScreen({ navigation }) {
         
         <Animated.View style={[styles.titleContainer, { transform: [{ scale: headerScale }] }]}>
           <Text style={styles.mashaAllah}>ما شاء الله</Text>
-          <Text style={styles.title}>Salat Leaderboard</Text>
+          <Text style={styles.title}>Community Leaderboard</Text>
         </Animated.View>
         
         <View style={styles.placeholder} />
@@ -230,7 +230,7 @@ export default function SalatLeaderboardScreen({ navigation }) {
 
       {/* Participants count */}
       <Text style={styles.participantsText}>
-        {totalParticipants} Muslims competing this week
+        {totalParticipants} friends competing this week
       </Text>
 
       {/* Leaderboard List */}
@@ -245,8 +245,8 @@ export default function SalatLeaderboardScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="people-outline" size={60} color="#ccc" />
-            <Text style={styles.emptyText}>No participants yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to pray and earn points!</Text>
+            <Text style={styles.emptyText}>No friends on the board yet</Text>
+            <Text style={styles.emptySubtext}>Befriend users to see their salat streaks!</Text>
           </View>
         }
       />

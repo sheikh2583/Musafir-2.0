@@ -218,7 +218,7 @@ export const ZAKAT_FOUNDATIONS = [
     description: 'Pay Zakat directly to 50+ organizations including Al-Markazul Islami, Prothom Alo Trust & Sajida Foundation.',
     color: '#E2136E',
     icon: '📲',
-    url: 'https://www.bkash.com/donation',
+    url: 'https://www.bkash.com/en/products-services/donation',
     featured: true,
   },
   {

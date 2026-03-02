@@ -8,12 +8,149 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
+  StatusBar,
   Animated,
+  Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 
+// ─── Animated AI Orb Component ───────────────────────────────
+function AIOrb({ size = 34, isThinking = false }) {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const glow = useRef(new Animated.Value(0.4)).current;
+  const rotate = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Continuous slow rotation
+    Animated.loop(
+      Animated.timing(rotate, {
+        toValue: 1,
+        duration: 8000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    if (isThinking) {
+      // Fast pulse when thinking
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1.18, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0.92, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ])
+      ).start();
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glow, { toValue: 0.9, duration: 500, useNativeDriver: true }),
+          Animated.timing(glow, { toValue: 0.3, duration: 500, useNativeDriver: true }),
+        ])
+      ).start();
+    } else {
+      // Calm idle breathing
+      pulse.stopAnimation();
+      glow.stopAnimation();
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1.06, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ])
+      ).start();
+      Animated.timing(glow, { toValue: 0.5, duration: 400, useNativeDriver: true }).start();
+    }
+  }, [isThinking]);
+
+  const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  return (
+    <View style={[orbStyles.container, { width: size, height: size }]}>
+      {/* Outer glow ring */}
+      <Animated.View
+        style={[
+          orbStyles.glowRing,
+          {
+            width: size + 8,
+            height: size + 8,
+            borderRadius: (size + 8) / 2,
+            opacity: glow,
+            transform: [{ scale: pulse }],
+          },
+        ]}
+      />
+      {/* Rotating ring */}
+      <Animated.View
+        style={[
+          orbStyles.rotateRing,
+          {
+            width: size + 2,
+            height: size + 2,
+            borderRadius: (size + 2) / 2,
+            transform: [{ rotate: spin }],
+          },
+        ]}
+      />
+      {/* Core orb */}
+      <Animated.View
+        style={[
+          orbStyles.core,
+          {
+            width: size - 4,
+            height: size - 4,
+            borderRadius: (size - 4) / 2,
+            transform: [{ scale: pulse }],
+          },
+        ]}
+      >
+        <Text style={[orbStyles.ilmText, { fontSize: size * 0.38 }]}>عِلْم</Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+const orbStyles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  glowRing: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#D4A84B',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  rotateRing: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    borderTopColor: '#D4A84B',
+    borderRightColor: 'rgba(212,168,75,0.3)',
+  },
+  core: {
+    backgroundColor: '#D4A84B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  ilmText: {
+    fontWeight: '700',
+    color: '#121212',
+    textAlign: 'center',
+  },
+});
+
+// ─── Main Chat Screen ────────────────────────────────────────
 export default function AIChatScreen({ navigation }) {
   const [messages, setMessages] = useState([
     {
@@ -50,7 +187,6 @@ export default function AIChatScreen({ navigation }) {
     setInputText('');
     setLoading(true);
 
-    // Prepare conversation history for context
     const history = messages
       .filter((m) => m.sender !== 'system')
       .map((m) => ({
@@ -63,7 +199,7 @@ export default function AIChatScreen({ navigation }) {
         message: userMessage.text,
         history: history,
       }, {
-        timeout: 120000, // 2 min timeout for LLM responses
+        timeout: 120000,
       });
 
       if (response.data?.success) {
@@ -80,15 +216,12 @@ export default function AIChatScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Chat error:', error);
-      
       let errorMessage = 'Sorry, I encountered an error. Please try again.';
-      
       if (error.response?.status === 503) {
         errorMessage = 'The AI service is currently unavailable. Please try again later.';
       } else if (error.message?.includes('Network')) {
         errorMessage = 'Network error. Please check your connection.';
       }
-
       const errorMsg = {
         id: (Date.now() + 1).toString(),
         text: errorMessage,
@@ -104,7 +237,7 @@ export default function AIChatScreen({ navigation }) {
 
   const renderMessage = ({ item }) => {
     const isUser = item.sender === 'user';
-    
+
     return (
       <View
         style={[
@@ -113,8 +246,8 @@ export default function AIChatScreen({ navigation }) {
         ]}
       >
         {!isUser && (
-          <View style={styles.aiAvatar}>
-            <Ionicons name="sparkles" size={16} color="#D4A84B" />
+          <View style={styles.aiAvatarWrap}>
+            <AIOrb size={30} isThinking={false} />
           </View>
         )}
         <View
@@ -125,15 +258,11 @@ export default function AIChatScreen({ navigation }) {
           ]}
         >
           <Text
-            style={[
-              styles.messageText,
-              isUser ? styles.userText : styles.aiText,
-            ]}
+            style={[styles.messageText, isUser ? styles.userText : styles.aiText]}
           >
             {item.text}
           </Text>
-          
-          {/* Show sources if available */}
+
           {item.sources && item.sources.length > 0 && (
             <View style={styles.sourcesContainer}>
               <Text style={styles.sourcesLabel}>📚 Sources:</Text>
@@ -144,7 +273,7 @@ export default function AIChatScreen({ navigation }) {
               ))}
             </View>
           )}
-          
+
           <Text style={styles.timestamp}>
             {new Date(item.timestamp).toLocaleTimeString([], {
               hour: '2-digit',
@@ -168,42 +297,58 @@ export default function AIChatScreen({ navigation }) {
     "What is Zakat?",
   ];
 
-  const handleSuggestedQuestion = (question) => {
-    setInputText(question);
-  };
-
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#121212" />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.backButton}
+          activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color="#D4A84B" />
         </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Islamic AI Assistant</Text>
-          <View style={styles.statusContainer}>
-            <View style={[styles.statusDot, loading && styles.statusDotActive]} />
-            <Text style={styles.statusText}>
-              {loading ? 'Thinking...' : 'Online'}
-            </Text>
+        <View style={styles.headerCenter}>
+          <AIOrb size={36} isThinking={loading} />
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.headerTitle}>Islamic AI</Text>
+            <View style={styles.statusContainer}>
+              <View style={[styles.statusDot, loading && styles.statusDotActive]} />
+              <Text style={styles.statusText}>
+                {loading ? 'Thinking...' : 'Online'}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          onPress={() => {
+            setMessages([{
+              id: '1',
+              text: "As-salamu alaykum! I'm your Islamic knowledge assistant. Ask me anything about the Quran, Hadith, or Islamic practices.",
+              sender: 'ai',
+              timestamp: new Date(),
+            }]);
+          }}
+          style={styles.clearBtn}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="refresh-outline" size={22} color="#808080" />
+        </TouchableOpacity>
       </View>
 
-      {/* Suggested Questions (shown when few messages) */}
+      {/* Suggested Questions */}
       {messages.length <= 2 && (
         <View style={styles.suggestionsContainer}>
-          <Text style={styles.suggestionsTitle}>Suggested Questions:</Text>
+          <Text style={styles.suggestionsTitle}>Suggested Questions</Text>
           <View style={styles.suggestionsGrid}>
             {suggestedQuestions.map((q, idx) => (
               <TouchableOpacity
                 key={idx}
                 style={styles.suggestionChip}
-                onPress={() => handleSuggestedQuestion(q)}
+                onPress={() => setInputText(q)}
+                activeOpacity={0.7}
               >
                 <Text style={styles.suggestionText}>{q}</Text>
               </TouchableOpacity>
@@ -217,38 +362,37 @@ export default function AIChatScreen({ navigation }) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-      {/* Messages List */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
-        keyboardShouldPersistTaps="handled"
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        onLayout={() =>
-          flatListRef.current?.scrollToEnd({ animated: false })
-        }
-      />
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messagesList}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
+          onLayout={() =>
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }
+        />
 
-      {/* Loading Indicator */}
-      {loading && (
-        <View style={styles.typingIndicator}>
-          <ActivityIndicator size="small" color="#D4A84B" />
-          <Text style={styles.typingText}>AI is thinking...</Text>
-        </View>
-      )}
+        {/* Thinking Indicator with Orb */}
+        {loading && (
+          <View style={styles.typingIndicator}>
+            <AIOrb size={22} isThinking={true} />
+            <Text style={styles.typingText}>Thinking...</Text>
+          </View>
+        )}
 
-      {/* Input Area */}
+        {/* Input Area */}
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
             placeholder="Ask about Islam, Quran, or Hadith..."
-            placeholderTextColor="#666"
+            placeholderTextColor="#808080"
             multiline
             maxLength={500}
             editable={!loading}
@@ -260,6 +404,7 @@ export default function AIChatScreen({ navigation }) {
             ]}
             onPress={sendMessage}
             disabled={!inputText.trim() || loading}
+            activeOpacity={0.7}
           >
             <Ionicons
               name="send"
@@ -278,60 +423,75 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
   },
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 15,
+    paddingTop: Platform.OS === 'ios' ? 56 : 44,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
     backgroundColor: '#1E1E1E',
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#2C2C2C',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   backButton: {
-    padding: 5,
+    padding: 6,
   },
-  headerTitleContainer: {
+  headerCenter: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  headerTextWrap: {
+    alignItems: 'flex-start',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#D4A84B',
   },
   statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#4CAF50',
-    marginRight: 6,
+    marginRight: 5,
   },
   statusDotActive: {
     backgroundColor: '#FF9800',
   },
   statusText: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 11,
+    color: '#808080',
   },
-  placeholder: {
-    width: 34,
+  clearBtn: {
+    padding: 6,
   },
+  // Suggestions
   suggestionsContainer: {
-    padding: 15,
-    backgroundColor: '#1A1A1A',
+    padding: 16,
+    backgroundColor: '#1E1E1E',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2C',
   },
   suggestionsTitle: {
     fontSize: 12,
-    color: '#888',
+    color: '#808080',
     marginBottom: 10,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    fontWeight: '600',
   },
   suggestionsGrid: {
     flexDirection: 'row',
@@ -340,23 +500,24 @@ const styles = StyleSheet.create({
   },
   suggestionChip: {
     backgroundColor: '#2A2A2A',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#D4A84B33',
+    borderColor: 'rgba(212,168,75,0.2)',
   },
   suggestionText: {
     fontSize: 13,
     color: '#D4A84B',
   },
+  // Messages
   messagesList: {
-    padding: 15,
+    padding: 16,
     paddingBottom: 20,
   },
   messageContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 14,
     alignItems: 'flex-end',
   },
   userMessageContainer: {
@@ -365,16 +526,9 @@ const styles = StyleSheet.create({
   aiMessageContainer: {
     justifyContent: 'flex-start',
   },
-  aiAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#2A2A2A',
-    alignItems: 'center',
-    justifyContent: 'center',
+  aiAvatarWrap: {
     marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#D4A84B44',
+    marginBottom: 2,
   },
   userAvatar: {
     width: 30,
@@ -387,20 +541,32 @@ const styles = StyleSheet.create({
   },
   messageBubble: {
     maxWidth: '75%',
-    padding: 12,
+    padding: 14,
     borderRadius: 18,
   },
   userBubble: {
     backgroundColor: '#D4A84B',
     borderBottomRightRadius: 4,
+    shadowColor: '#D4A84B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
   aiBubble: {
-    backgroundColor: '#2A2A2A',
+    backgroundColor: '#1E1E1E',
     borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#2C2C2C',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
   errorBubble: {
     backgroundColor: '#3D2020',
-    borderColor: '#F44336',
+    borderColor: '#EF5350',
     borderWidth: 1,
   },
   messageText: {
@@ -411,13 +577,13 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   aiText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   sourcesContainer: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#444',
+    borderTopColor: '#2C2C2C',
   },
   sourcesLabel: {
     fontSize: 11,
@@ -427,34 +593,39 @@ const styles = StyleSheet.create({
   },
   sourceText: {
     fontSize: 11,
-    color: '#888',
+    color: '#808080',
     marginTop: 2,
   },
   timestamp: {
     fontSize: 10,
-    color: '#666',
+    color: '#808080',
     marginTop: 6,
     alignSelf: 'flex-end',
   },
+  // Typing
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 8,
-    backgroundColor: '#1A1A1A',
+    paddingVertical: 10,
+    backgroundColor: '#1E1E1E',
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2C',
+    gap: 10,
   },
   typingText: {
-    marginLeft: 10,
-    color: '#888',
+    color: '#D4A84B',
     fontSize: 13,
+    fontWeight: '500',
   },
+  // Input
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 12,
     backgroundColor: '#1E1E1E',
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: '#2C2C2C',
   },
   input: {
     flex: 1,
@@ -462,11 +633,13 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    paddingRight: 45,
-    color: '#fff',
+    paddingRight: 16,
+    color: '#FFFFFF',
     fontSize: 15,
     maxHeight: 100,
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   sendButton: {
     width: 44,
@@ -475,6 +648,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A2A2A',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
   },
   sendButtonDisabled: {
     opacity: 0.5,

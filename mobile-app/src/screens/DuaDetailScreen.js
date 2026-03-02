@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   transliteration: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#C9A84C',
+    color: '#D4A84B',
     lineHeight: 22,
     marginBottom: 10,
   },

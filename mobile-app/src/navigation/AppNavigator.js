@@ -39,6 +39,7 @@ import LectureSpeakersScreen from '../screens/LectureSpeakersScreen';
 import LectureListScreen from '../screens/LectureListScreen';
 import LecturePlayerScreen from '../screens/LecturePlayerScreen';
 import MusafirScreen from '../screens/MusafirScreen';
+import CommunityScreen from '../screens/CommunityScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -236,6 +237,28 @@ function HadithStack() {
   );
 }
 
+function CommunityStack() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="CommunityMain"
+        component={CommunityScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="UserProfile"
+        component={UserProfileScreen}
+        options={{ title: 'User Profile' }}
+      />
+      <Stack.Screen
+        name="SalatLeaderboard"
+        component={SalatLeaderboardScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
 function ProfileStack() {
   return (
     <Stack.Navigator>
@@ -267,6 +290,8 @@ function MainTabs() {
               iconName = focused ? 'book' : 'book-outline';
             } else if (route.name === 'Hadith') {
               iconName = focused ? 'library' : 'library-outline';
+            } else if (route.name === 'Community') {
+              iconName = focused ? 'people' : 'people-outline';
             } else if (route.name === 'Profile') {
               iconName = focused ? 'person' : 'person-outline';
             }
@@ -286,6 +311,7 @@ function MainTabs() {
         <Tab.Screen name="Home" component={HomeStack} />
         <Tab.Screen name="Quran" component={QuranStack} />
         <Tab.Screen name="Hadith" component={HadithStack} />
+        <Tab.Screen name="Community" component={CommunityStack} />
         <Tab.Screen name="Profile" component={ProfileStack} />
       </Tab.Navigator>
       <FloatingMiniPlayer />

@@ -83,7 +83,9 @@ export default function ProfileScreen({ navigation }) {
         }
       >
         <View style={styles.profileHeader}>
-          <Text style={styles.avatar}>{userData?.name?.[0]?.toUpperCase() || 'U'}</Text>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>{userData?.name?.[0]?.toUpperCase() || 'U'}</Text>
+          </View>
           <Text style={styles.name}>{userData?.name || 'User'}</Text>
           <Text style={styles.email}>{userData?.email || ''}</Text>
         </View>
@@ -181,17 +183,19 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginBottom: 40,
   },
-  avatar: {
+  avatarContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: '#D4A84B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 15,
+  },
+  avatarText: {
     color: '#121212',
     fontSize: 36,
     fontWeight: 'bold',
-    textAlign: 'center',
-    lineHeight: 80,
-    marginBottom: 15,
   },
   name: {
     fontSize: 24,

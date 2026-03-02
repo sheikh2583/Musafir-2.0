@@ -1,37 +1,89 @@
+# ═══════════════════════════════════════════════════════════════
+#  Musafir — .gitignore
+# ═══════════════════════════════════════════════════════════════
+
 # ─── Dependencies ────────────────────────────────────────────
 node_modules/
 __pycache__/
 *.pyc
+
+# ─── Python Virtual Environments ─────────────────────────────
 venv/
 .venv/
+*.egg-info/
 
-# ─── Environment Variables ───────────────────────────────────
+# ─── Environment Variables (secrets) ─────────────────────────
 .env
+.env.local
+.env.*.local
 !.env.example
 
 # ─── Build / Cache ───────────────────────────────────────────
 .expo/
 dist/
 build/
+web-build/
 *.tsbuildinfo
+.metro-health-check*
 
-# ─── ONNX Models (large binaries — track with Git LFS) ──────
-# backend/bge-base-en-v1.5/model.safetensors
-# backend/bge-base-en-v1.5/onnx/
-# backend/bge-reranker-base/model.safetensors
-# backend/bge-reranker-base/onnx/
+# ─── ML Model Binaries (~10 GB — download separately) ───────
+backend/bge-base-en-v1.5/
+backend/bge-reranker-base/
+*.safetensors
+*.bin
+*.onnx
+*.onnx.data
 
-# ─── Vector Databases ───────────────────────────────────────
+# ─── Audio Files (~5 GB — stream or host externally) ─────────
+AudioStreamService/
+*.mp3
+*.wav
+
+# ─── Large Archives ─────────────────────────────────────────
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ─── Vector Databases & Indexes ─────────────────────────────
 services/ai/chroma_db/
+services/ai 2/
+chroma_db/
 backend/vector_index.json
 
 # ─── OS / IDE ────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 .vscode/
+.idea/
 *.swp
 *.swo
+*~
 
-# ─── Logs ────────────────────────────────────────────────────
+# ─── Logs & Temp ─────────────────────────────────────────────
 *.log
+logs/
 server-log.txt
+test-output.txt
+ollama-*.txt
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ─── Native Build Artifacts ─────────────────────────────────
+/ios
+/android
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+*.pem
+.kotlin/
+coverage/
+.nyc_output/
+
+# ─── PDFs (keep docs as markdown) ───────────────────────────
+docs/reports/*.pdf
+docs/slides/*.pdf
